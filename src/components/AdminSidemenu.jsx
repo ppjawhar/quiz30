@@ -15,13 +15,14 @@ import {
   UsersIcon,
   QuestionMarkCircleIcon,
   RocketLaunchIcon,
+  PuzzlePieceIcon,
 } from "@heroicons/react/24/outline";
 
 function AdminSidemenu() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (paths) => paths.includes(location.pathname);
 
   return (
     <Flex width="280px" direction="column" gap="4">
@@ -36,25 +37,28 @@ function AdminSidemenu() {
           <HomeIcon className="size-5" />
           Home
         </Button>
+
         <Button
           variant="ghost"
           size="3"
-          color={`${isActive("/participants") ? "" : "gray"}`}
+          color={`${isActive(["/quizzes", "/add-quiz"]) ? "" : "gray"}`}
+          className="!justify-start"
+          onClick={() => navigate("/quizzes")}
+        >
+          <PuzzlePieceIcon className="size-5" />
+          Quizzes
+        </Button>
+        <Button
+          variant="ghost"
+          size="3"
+          color={`${
+            isActive(["/participants", "/add-participant"]) ? "" : "gray"
+          }`}
           className="!justify-start"
           onClick={() => navigate("/participants")}
         >
           <UsersIcon className="size-5" />
           Participants
-        </Button>
-        <Button
-          variant="ghost"
-          size="3"
-          color={`${isActive("/questions") ? "" : "gray"}`}
-          className="!justify-start"
-          onClick={() => navigate("/questions")}
-        >
-          <QuestionMarkCircleIcon className="size-5" />
-          Questions
         </Button>
         <Button
           variant="ghost"

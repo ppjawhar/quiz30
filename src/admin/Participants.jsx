@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { collection, getDocs } from "firebase/firestore"; // Firestore methods
+import { collection, getDocs, deleteDoc, doc } from "firebase/firestore"; // Firestore methods
 import { db } from "../firebase"; // Import Firestore instance
 import {
   Flex,
@@ -10,10 +10,56 @@ import {
   Button,
   Table,
   Badge,
+  Spinner,
+  IconButton,
+  AlertDialog,
 } from "@radix-ui/themes";
+import { TrashIcon } from "@heroicons/react/24/outline";
 
 import AdminHeader from "../components/AdminHeader";
 import AdminSidemenu from "../components/AdminSidemenu";
+
+function DeleteParticipant({ participantId, onDelete }) {
+  const handleDelete = async () => {
+    try {
+      // Delete participant from Firestore
+      await deleteDoc(doc(db, "participants", participantId));
+      // Call onDelete callback to update UI
+      onDelete(participantId);
+    } catch (err) {
+      console.error("Error deleting participant:", err);
+    }
+  };
+
+  return (
+    <AlertDialog.Root>
+      <AlertDialog.Trigger>
+        <IconButton variant="soft" size="1" color="red">
+          <TrashIcon width="12" height="12" />
+        </IconButton>
+      </AlertDialog.Trigger>
+      <AlertDialog.Content maxWidth="450px">
+        <AlertDialog.Title>Delete Participant?</AlertDialog.Title>
+        <AlertDialog.Description size="2">
+          Are you sure? This participant will no longer be available.
+        </AlertDialog.Description>
+
+        <Flex gap="3" mt="4" justify="end">
+          <AlertDialog.Cancel>
+            <Button variant="soft" color="gray">
+              Cancel
+            </Button>
+          </AlertDialog.Cancel>
+          <AlertDialog.Action>
+            <Button variant="solid" color="red" onClick={handleDelete}>
+              Delete
+            </Button>
+          </AlertDialog.Action>
+        </Flex>
+      </AlertDialog.Content>
+    </AlertDialog.Root>
+  );
+}
 
 function Participants() {
   const [participants, setParticipants] = useState([]);
@@ -39,6 +85,12 @@ function Participants() {
     fetchParticipants();
   }, []);
 
+  const handleDeleteFromState = (participantId) => {
+    setParticipants((prevParticipants) =>
+      prevParticipants.filter((p) => p.id !== participantId)
+    );
+  };
+
   return (
     <Box>
       <Section size="4" py="7" px="7">
@@ -62,7 +114,9 @@ function Participants() {
                 </Flex>
 
                 {loading ? (
-                  <Text>Loading participants...</Text>
+                  <Text>
+                    <Spinner />
+                  </Text>
                 ) : participants.length > 0 ? (
                   <Table.Root variant="surface">
                     <Table.Header>
@@ -75,6 +129,7 @@ function Participants() {
                         <Table.ColumnHeaderCell>
                           Participation No.
                         </Table.ColumnHeaderCell>
+                        <Table.ColumnHeaderCell></Table.ColumnHeaderCell>
                       </Table.Row>
                     </Table.Header>
 
@@ -90,6 +145,12 @@ function Participants() {
                             <Badge variant="outline">
                               {participant.participationNumber}
                             </Badge>
+                          </Table.Cell>
+                          <Table.Cell align="right">
+                            <DeleteParticipant
+                              participantId={participant.id}
+                              onDelete={handleDeleteFromState}
+                            />
                           </Table.Cell>
                         </Table.Row>
                       ))}

@@ -1,25 +1,34 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { collection, addDoc, getDocs, query, where } from "firebase/firestore"; // Firestore methods
+import { collection, addDoc, query, where, getDocs } from "firebase/firestore"; // Firestore methods
 import { db } from "../firebase"; // Import Firestore instance
-import { Flex, Box, Section, Text, TextField, Button } from "@radix-ui/themes";
-import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import {
+  Flex,
+  Box,
+  Section,
+  Text,
+  TextField,
+  Button,
+  Table,
+  IconButton,
+} from "@radix-ui/themes";
+import { ArrowLeftIcon, XMarkIcon } from "@heroicons/react/24/outline";
 import AdminHeader from "../components/AdminHeader";
 import AdminSidemenu from "../components/AdminSidemenu";
 
 function AddParticipant() {
-  const [name, setName] = useState("");
-  const [age, setAge] = useState("");
-  const [phone, setPhone] = useState("");
+  const [participants, setParticipants] = useState([
+    { name: "", age: "", phone: "" },
+  ]);
+  const [loading, setLoading] = useState(false); // For submit loading state
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false); // For button loading state
   const navigate = useNavigate();
 
+  // Generate a unique 4-digit participation number
   const generateParticipationNumber = async () => {
     while (true) {
-      const participationNumber = Math.floor(1000 + Math.random() * 9000); // Generate a random 4-digit number
+      const participationNumber = Math.floor(1000 + Math.random() * 9000); // Generate random 4-digit number
 
-      // Check Firestore for duplicate participationNumber
       const participantsQuery = query(
         collection(db, "participants"),
         where("participationNumber", "==", participationNumber)
@@ -27,44 +36,58 @@ function AddParticipant() {
       const querySnapshot = await getDocs(participantsQuery);
 
       if (querySnapshot.empty) {
-        // If no duplicate found, return the generated number
         return participationNumber;
       }
-
-      // Otherwise, retry generating a new number
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // Add a new blank participant row
+  const handleAddRow = () => {
+    setParticipants([...participants, { name: "", age: "", phone: "" }]);
+  };
 
-    // Validate inputs
-    if (!name || !age || !phone) {
-      setError("All fields are required.");
-      return;
-    }
+  // Update participant details in the table
+  const handleInputChange = (index, field, value) => {
+    const updatedParticipants = [...participants];
+    updatedParticipants[index][field] = value;
+    setParticipants(updatedParticipants);
+  };
 
-    setLoading(true);
+  // Remove a participant row
+  const handleRemoveRow = (index) => {
+    const updatedParticipants = participants.filter((_, i) => i !== index);
+    setParticipants(updatedParticipants);
+  };
+
+  // Submit participants to Firestore
+  const handleSubmit = async () => {
     setError("");
+    setLoading(true);
 
     try {
-      const participationNumber = await generateParticipationNumber(); // Generate a unique number
+      // Validate inputs
+      for (const participant of participants) {
+        if (!participant.name || !participant.age || !participant.phone) {
+          setError("All fields are required for each participant.");
+          setLoading(false);
+          return;
+        }
+      }
 
-      // Add participant to Firestore
-      const docRef = await addDoc(collection(db, "participants"), {
-        name,
-        age: Number(age),
-        phone,
-        participationNumber,
-      });
+      // Add each participant to Firestore
+      for (const participant of participants) {
+        const participationNumber = await generateParticipationNumber();
+        await addDoc(collection(db, "participants"), {
+          ...participant,
+          age: Number(participant.age),
+          participationNumber,
+        });
+      }
 
-      console.log("Document written with ID:", docRef.id);
-
-      // Redirect back to participants page
-      navigate("/participants");
+      navigate("/participants"); // Redirect to participants list
     } catch (err) {
-      console.error("Error adding document:", err);
-      setError("Failed to add participant. Please try again.");
+      console.error("Error adding participants:", err);
+      setError("Failed to add participants. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -78,10 +101,10 @@ function AddParticipant() {
           <Flex gap="1">
             <AdminSidemenu />
             <Flex direction="column" gap="7" flexGrow="1">
-              <Flex direction="column" gap="7">
-                <Flex direction="column" gap="5" align="start">
+              <Flex direction="column" gap="5">
+                <Flex direction="column" align="start" gap="5">
                   <Button
-                    size="3"
+                    size="2"
                     variant="soft"
                     onClick={() => navigate("/participants")}
                   >
@@ -89,64 +112,97 @@ function AddParticipant() {
                     Back
                   </Button>
                   <Text size="5" className="font-semibold">
-                    Add Participant
+                    Add Participants
                   </Text>
                 </Flex>
-                <form onSubmit={handleSubmit}>
-                  <Flex as="form" direction="column" gap="5" width="400px">
-                    {error && (
-                      <Text color="red" size="2">
-                        {error}
-                      </Text>
-                    )}
-                    <label>
-                      <Text as="div" size="2" mb="1" weight="bold">
-                        Name
-                      </Text>
-                      <TextField.Root
-                        placeholder="Enter Name"
-                        className="!h-12 !bg-gray-200/30"
-                        size="3"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                      />
-                    </label>
-                    <label>
-                      <Text as="div" size="2" mb="1" weight="bold">
-                        Age
-                      </Text>
-                      <TextField.Root
-                        placeholder="Enter Age"
-                        className="!h-12 !bg-gray-200/30"
-                        size="3"
-                        type="number"
-                        value={age}
-                        onChange={(e) => setAge(e.target.value)}
-                      />
-                    </label>
-                    <label>
-                      <Text as="div" size="2" mb="1" weight="bold">
+
+                {error && (
+                  <Text color="red" size="2">
+                    {error}
+                  </Text>
+                )}
+
+                <Table.Root variant="surface">
+                  <Table.Header>
+                    <Table.Row>
+                      <Table.ColumnHeaderCell></Table.ColumnHeaderCell>
+                      <Table.ColumnHeaderCell>
+                        Participant Name
+                      </Table.ColumnHeaderCell>
+                      <Table.ColumnHeaderCell>Age</Table.ColumnHeaderCell>
+                      <Table.ColumnHeaderCell>
                         Phone Number
-                      </Text>
-                      <TextField.Root
-                        placeholder="Enter Phone Number"
-                        className="!h-12 !bg-gray-200/30"
-                        size="3"
-                        type="number"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                      />
-                    </label>
-                    <Button
-                      size="4"
-                      variant="solid"
-                      type="submit"
-                      disabled={loading}
-                    >
-                      {loading ? "Adding Participant..." : "Add Participant"}
-                    </Button>
-                  </Flex>
-                </form>
+                      </Table.ColumnHeaderCell>
+                      <Table.ColumnHeaderCell></Table.ColumnHeaderCell>
+                    </Table.Row>
+                  </Table.Header>
+                  <Table.Body>
+                    {participants.map((participant, index) => (
+                      <Table.Row key={index} align="center">
+                        <Table.Cell>{index + 1}.</Table.Cell>
+                        <Table.RowHeaderCell>
+                          <TextField.Root
+                            placeholder="Enter Name"
+                            className="!bg-gray-200/30"
+                            size="2"
+                            value={participant.name}
+                            onChange={(e) =>
+                              handleInputChange(index, "name", e.target.value)
+                            }
+                          />
+                        </Table.RowHeaderCell>
+                        <Table.Cell>
+                          <TextField.Root
+                            placeholder="Enter Age"
+                            className="!bg-gray-200/30"
+                            size="2"
+                            type="number"
+                            value={participant.age}
+                            onChange={(e) =>
+                              handleInputChange(index, "age", e.target.value)
+                            }
+                          />
+                        </Table.Cell>
+                        <Table.Cell>
+                          <TextField.Root
+                            placeholder="Enter Phone Number"
+                            className="!bg-gray-200/30"
+                            size="2"
+                            type="number"
+                            value={participant.phone}
+                            onChange={(e) =>
+                              handleInputChange(index, "phone", e.target.value)
+                            }
+                          />
+                        </Table.Cell>
+                        <Table.Cell align="right">
+                          <IconButton
+                            variant="soft"
+                            size="2"
+                            color="red"
+                            onClick={() => handleRemoveRow(index)}
+                          >
+                            <XMarkIcon width="16" height="16" />
+                          </IconButton>
+                        </Table.Cell>
+                      </Table.Row>
+                    ))}
+                  </Table.Body>
+                </Table.Root>
+
+                <Flex justify="between" mt="4">
+                  <Button variant="soft" size="2" onClick={handleAddRow}>
+                    + Add More
+                  </Button>
+                  <Button
+                    variant="solid"
+                    size="2"
+                    onClick={handleSubmit}
+                    disabled={loading}
+                  >
+                    {loading ? "Submitting..." : "Submit"}
+                  </Button>
+                </Flex>
               </Flex>
             </Flex>
           </Flex>

@@ -32,9 +32,6 @@ function Dashboard() {
             <AdminSidemenu />
             <Flex direction="column" gap="7" flexGrow="1">
               <Flex direction="column" gap="4">
-                <Text size="5" className="font-semibold">
-                  Dashboard
-                </Text>
                 <Flex gap="3">
                   <Card>
                     <Flex

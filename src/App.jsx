@@ -6,9 +6,9 @@ import Dashboard from "./admin/Dashboard";
 import Participants from "./admin/Participants";
 import AddParticipant from "./admin/AddParticipant";
 import AddParticipantSuccess from "./admin/AddParticipantSuccess";
-import Questions from "./admin/Questions";
-import AddQuestion from "./admin/AddQuestion";
-import Question from "./admin/Question";
+import Quizzes from "./admin/Quizzes";
+import AddQuiz from "./admin/AddQuiz";
+import QuizInfo from "./admin/QuizInfo";
 
 function App() {
   return (
@@ -50,26 +50,26 @@ function App() {
         />
 
         <Route
-          path="/questions"
+          path="/quizzes"
           element={
             <ProtectedRoute>
-              <Questions />
+              <Quizzes />
             </ProtectedRoute>
           }
         />
         <Route
-          path="/add-question"
+          path="/add-quiz"
           element={
             <ProtectedRoute>
-              <AddQuestion />
+              <AddQuiz />
             </ProtectedRoute>
           }
         />
         <Route
-          path="/question"
+          path="/quiz-info"
           element={
             <ProtectedRoute>
-              <Question />
+              <QuizInfo />
             </ProtectedRoute>
           }
         />
