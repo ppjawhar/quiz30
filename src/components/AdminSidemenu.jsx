@@ -1,4 +1,6 @@
 import { useNavigate, useLocation } from "react-router-dom";
+import { signOut } from "firebase/auth"; // Firebase sign-out method
+import { auth } from "../firebase"; // Import your Firebase auth instance
 import {
   Flex,
   Box,
@@ -22,11 +24,28 @@ function AdminSidemenu() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const handleLogout = async () => {
+    try {
+      await signOut(auth); // Sign out the user
+      navigate("/login"); // Redirect to login page
+    } catch (err) {
+      console.error("Error during logout:", err.message);
+    }
+  };
+
   const isActive = (paths) => paths.includes(location.pathname);
 
   return (
-    <Flex width="280px" direction="column" gap="4">
-      <Flex direction="column" gap="5" width="200px">
+    <Flex width="280px" direction="column" gap="9" px="7" py="7">
+      <Flex gap="0" direction="column">
+        <Text size="3" color="gray" className="!font-sans">
+          EK Family
+        </Text>
+        <Text size="5" className="font-semibold">
+          Ramadan Quiz 2025
+        </Text>
+      </Flex>
+      <Flex direction="column" gap="5">
         <Button
           variant="ghost"
           size="3"
@@ -41,7 +60,9 @@ function AdminSidemenu() {
         <Button
           variant="ghost"
           size="3"
-          color={`${isActive(["/quizzes", "/add-quiz"]) ? "" : "gray"}`}
+          color={`${
+            isActive(["/quizzes", "/add-quiz", "/quiz/:id"]) ? "" : "gray"
+          }`}
           className="!justify-start"
           onClick={() => navigate("/quizzes")}
         >
@@ -71,6 +92,9 @@ function AdminSidemenu() {
           Leaderboard
         </Button>
       </Flex>
+      <Button size="3" variant="soft" onClick={handleLogout}>
+        Logout
+      </Button>
     </Flex>
   );
 }

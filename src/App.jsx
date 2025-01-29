@@ -2,10 +2,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./user/Home";
 import Login from "./admin/Login";
+import Layout from "./admin/Layout";
 import Dashboard from "./admin/Dashboard";
 import Participants from "./admin/Participants";
 import AddParticipant from "./admin/AddParticipant";
-import AddParticipantSuccess from "./admin/AddParticipantSuccess";
 import Quizzes from "./admin/Quizzes";
 import AddQuiz from "./admin/AddQuiz";
 import QuizInfo from "./admin/QuizInfo";
@@ -16,63 +16,23 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <Dashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/participants"
-          element={
-            <ProtectedRoute>
-              <Participants />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/add-participant"
-          element={
-            <ProtectedRoute>
-              <AddParticipant />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/add-participant-success"
-          element={
-            <ProtectedRoute>
-              <AddParticipantSuccess />
-            </ProtectedRoute>
-          }
-        />
 
+        {/* Admin Pages with Layout */}
         <Route
-          path="/quizzes"
+          path="/"
           element={
             <ProtectedRoute>
-              <Quizzes />
+              <Layout />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/add-quiz"
-          element={
-            <ProtectedRoute>
-              <AddQuiz />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/quiz-info"
-          element={
-            <ProtectedRoute>
-              <QuizInfo />
-            </ProtectedRoute>
-          }
-        />
+        >
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/quizzes" element={<Quizzes />} />
+          <Route path="/add-quiz" element={<AddQuiz />} />
+          <Route path="/quiz/:id" element={<QuizInfo />} /> {/* New Route */}
+          <Route path="/participants" element={<Participants />} />
+          <Route path="/add-participant" element={<AddParticipant />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   );

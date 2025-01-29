@@ -4,8 +4,6 @@ import { collection, addDoc, query, where, getDocs } from "firebase/firestore"; 
 import { db } from "../firebase"; // Import Firestore instance
 import {
   Flex,
-  Box,
-  Section,
   Text,
   TextField,
   Button,
@@ -13,8 +11,6 @@ import {
   IconButton,
 } from "@radix-ui/themes";
 import { ArrowLeftIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import AdminHeader from "../components/AdminHeader";
-import AdminSidemenu from "../components/AdminSidemenu";
 
 function AddParticipant() {
   const [participants, setParticipants] = useState([
@@ -94,121 +90,102 @@ function AddParticipant() {
   };
 
   return (
-    <Box>
-      <Section size="4" py="7" px="7">
-        <Flex gap="6" direction="column">
-          <AdminHeader />
-          <Flex gap="1">
-            <AdminSidemenu />
-            <Flex direction="column" gap="7" flexGrow="1">
-              <Flex direction="column" gap="5">
-                <Flex direction="column" align="start" gap="5">
-                  <Button
-                    size="2"
-                    variant="soft"
-                    onClick={() => navigate("/participants")}
-                  >
-                    <ArrowLeftIcon className="size-5" />
-                    Back
-                  </Button>
-                  <Text size="5" className="font-semibold">
-                    Add Participants
-                  </Text>
-                </Flex>
+    <Flex direction="column" gap="7" flexGrow="1">
+      <Flex direction="column" align="start" gap="5">
+        <Button
+          size="2"
+          variant="soft"
+          onClick={() => navigate("/participants")}
+        >
+          <ArrowLeftIcon className="size-5" />
+          Back
+        </Button>
+        <Text size="5" className="font-semibold">
+          Add Participants
+        </Text>
+      </Flex>
 
-                {error && (
-                  <Text color="red" size="2">
-                    {error}
-                  </Text>
-                )}
+      {error && (
+        <Text color="red" size="2">
+          {error}
+        </Text>
+      )}
 
-                <Table.Root variant="surface">
-                  <Table.Header>
-                    <Table.Row>
-                      <Table.ColumnHeaderCell></Table.ColumnHeaderCell>
-                      <Table.ColumnHeaderCell>
-                        Participant Name
-                      </Table.ColumnHeaderCell>
-                      <Table.ColumnHeaderCell>Age</Table.ColumnHeaderCell>
-                      <Table.ColumnHeaderCell>
-                        Phone Number
-                      </Table.ColumnHeaderCell>
-                      <Table.ColumnHeaderCell></Table.ColumnHeaderCell>
-                    </Table.Row>
-                  </Table.Header>
-                  <Table.Body>
-                    {participants.map((participant, index) => (
-                      <Table.Row key={index} align="center">
-                        <Table.Cell>{index + 1}.</Table.Cell>
-                        <Table.RowHeaderCell>
-                          <TextField.Root
-                            placeholder="Enter Name"
-                            className="!bg-gray-200/30"
-                            size="2"
-                            value={participant.name}
-                            onChange={(e) =>
-                              handleInputChange(index, "name", e.target.value)
-                            }
-                          />
-                        </Table.RowHeaderCell>
-                        <Table.Cell>
-                          <TextField.Root
-                            placeholder="Enter Age"
-                            className="!bg-gray-200/30"
-                            size="2"
-                            type="number"
-                            value={participant.age}
-                            onChange={(e) =>
-                              handleInputChange(index, "age", e.target.value)
-                            }
-                          />
-                        </Table.Cell>
-                        <Table.Cell>
-                          <TextField.Root
-                            placeholder="Enter Phone Number"
-                            className="!bg-gray-200/30"
-                            size="2"
-                            type="number"
-                            value={participant.phone}
-                            onChange={(e) =>
-                              handleInputChange(index, "phone", e.target.value)
-                            }
-                          />
-                        </Table.Cell>
-                        <Table.Cell align="right">
-                          <IconButton
-                            variant="soft"
-                            size="2"
-                            color="red"
-                            onClick={() => handleRemoveRow(index)}
-                          >
-                            <XMarkIcon width="16" height="16" />
-                          </IconButton>
-                        </Table.Cell>
-                      </Table.Row>
-                    ))}
-                  </Table.Body>
-                </Table.Root>
+      <Table.Root variant="surface">
+        <Table.Header>
+          <Table.Row>
+            <Table.ColumnHeaderCell></Table.ColumnHeaderCell>
+            <Table.ColumnHeaderCell>Participant Name</Table.ColumnHeaderCell>
+            <Table.ColumnHeaderCell>Age</Table.ColumnHeaderCell>
+            <Table.ColumnHeaderCell>Phone Number</Table.ColumnHeaderCell>
+            <Table.ColumnHeaderCell></Table.ColumnHeaderCell>
+          </Table.Row>
+        </Table.Header>
+        <Table.Body>
+          {participants.map((participant, index) => (
+            <Table.Row key={index} align="center">
+              <Table.Cell>{index + 1}.</Table.Cell>
+              <Table.RowHeaderCell>
+                <TextField.Root
+                  placeholder="Enter Name"
+                  size="2"
+                  value={participant.name}
+                  onChange={(e) =>
+                    handleInputChange(index, "name", e.target.value)
+                  }
+                />
+              </Table.RowHeaderCell>
+              <Table.Cell>
+                <TextField.Root
+                  placeholder="Enter Age"
+                  size="2"
+                  type="number"
+                  value={participant.age}
+                  onChange={(e) =>
+                    handleInputChange(index, "age", e.target.value)
+                  }
+                />
+              </Table.Cell>
+              <Table.Cell>
+                <TextField.Root
+                  placeholder="Enter Phone Number"
+                  size="2"
+                  type="number"
+                  value={participant.phone}
+                  onChange={(e) =>
+                    handleInputChange(index, "phone", e.target.value)
+                  }
+                />
+              </Table.Cell>
+              <Table.Cell align="right">
+                <IconButton
+                  variant="soft"
+                  size="2"
+                  color="red"
+                  onClick={() => handleRemoveRow(index)}
+                >
+                  <XMarkIcon width="16" height="16" />
+                </IconButton>
+              </Table.Cell>
+            </Table.Row>
+          ))}
+        </Table.Body>
+      </Table.Root>
 
-                <Flex justify="between" mt="4">
-                  <Button variant="soft" size="2" onClick={handleAddRow}>
-                    + Add More
-                  </Button>
-                  <Button
-                    variant="solid"
-                    size="2"
-                    onClick={handleSubmit}
-                    disabled={loading}
-                  >
-                    {loading ? "Submitting..." : "Submit"}
-                  </Button>
-                </Flex>
-              </Flex>
-            </Flex>
-          </Flex>
-        </Flex>
-      </Section>
-    </Box>
+      <Flex justify="between" mt="4">
+        <Button variant="soft" size="2" onClick={handleAddRow}>
+          + Add More
+        </Button>
+        <Button
+          variant="solid"
+          size="2"
+          onClick={handleSubmit}
+          disabled={loading}
+        >
+          {loading ? "Submitting..." : "Submit"}
+        </Button>
+      </Flex>
+    </Flex>
   );
 }
 

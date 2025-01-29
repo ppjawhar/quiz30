@@ -16,7 +16,7 @@ function AdminHeader() {
   };
 
   return (
-    <Flex justify="between" align="center">
+    <Flex justify="between" align="center" py="7" px="7">
       <Flex gap="0" direction="column">
         <Text size="3" color="gray" className="!font-sans">
           EK Family
@@ -25,9 +25,7 @@ function AdminHeader() {
           Ramadan Quiz 2025
         </Text>
       </Flex>
-      <Button size="3" variant="soft" onClick={handleLogout}>
-        Logout
-      </Button>
+      
     </Flex>
   );
 }

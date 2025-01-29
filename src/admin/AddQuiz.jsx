@@ -4,8 +4,6 @@ import { collection, addDoc } from "firebase/firestore"; // Firestore methods
 import { db } from "../firebase"; // Import Firestore instance
 import {
   Flex,
-  Box,
-  Section,
   Text,
   TextField,
   Card,
@@ -19,8 +17,6 @@ import {
   TrashIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import AdminHeader from "../components/AdminHeader";
-import AdminSidemenu from "../components/AdminSidemenu";
 
 function AddQuiz() {
   const [quizName, setQuizName] = useState("");
@@ -167,155 +163,122 @@ function AddQuiz() {
   };
 
   return (
-    <Box>
-      <Section size="4" py="7" px="7">
-        <Flex gap="6" direction="column">
-          <AdminHeader />
-          <Flex gap="1">
-            <AdminSidemenu />
-            <Flex direction="column" gap="7" flexGrow="1">
-              <Flex direction="column" gap="7">
-                <Flex direction="column" gap="5" align="start">
-                  <Button
-                    size="2"
-                    variant="soft"
-                    onClick={() => navigate("/quizzes")}
-                  >
-                    <ArrowLeftIcon className="size-5" />
-                    Back
-                  </Button>
-                  <Text size="5" className="font-semibold">
-                    Create Quiz
-                  </Text>
-                </Flex>
+    <Flex direction="column" gap="7" flexGrow="1">
+      <Flex direction="column" gap="5" align="start">
+        <Button size="2" variant="soft" onClick={() => navigate("/quizzes")}>
+          <ArrowLeftIcon className="size-5" />
+          Back
+        </Button>
+        <Text size="5" className="font-semibold">
+          Create Quiz
+        </Text>
+      </Flex>
 
-                {error && (
-                  <Text color="red" size="2">
-                    {error}
-                  </Text>
-                )}
+      {error && (
+        <Text color="red" size="2">
+          {error}
+        </Text>
+      )}
 
-                <Flex direction="column" gap="5" width="600px">
-                  <label>
-                    <Text as="div" size="3" mb="1" weight="bold">
-                      Quiz Name
-                    </Text>
-                    <TextField.Root
-                      placeholder="Enter Quiz Name"
-                      size="3"
-                      value={quizName}
-                      onChange={(e) => handleQuizNameChange(e.target.value)}
-                    />
-                  </label>
+      <Flex direction="column" gap="5" width="600px">
+        <label>
+          <Text as="div" size="3" mb="1" weight="bold">
+            Quiz Name
+          </Text>
+          <TextField.Root
+            placeholder="Enter Quiz Name"
+            size="3"
+            value={quizName}
+            onChange={(e) => handleQuizNameChange(e.target.value)}
+          />
+        </label>
 
-                  <label>
-                    <Text as="div" size="3" mb="1" weight="bold">
-                      Description
-                    </Text>
-                    <TextArea
-                      placeholder="Enter quiz description"
-                      size="3"
-                      value={description}
-                      onChange={(e) => handleDescriptionChange(e.target.value)}
-                    />
-                  </label>
+        <label>
+          <Text as="div" size="3" mb="1" weight="bold">
+            Description
+          </Text>
+          <TextArea
+            placeholder="Enter quiz description"
+            size="3"
+            value={description}
+            onChange={(e) => handleDescriptionChange(e.target.value)}
+          />
+        </label>
 
-                  {questions.map((question, qIndex) => (
-                    <Card
-                      key={qIndex}
-                      variant="classic"
-                      className="bg-gray-500/10"
-                    >
-                      <Flex direction="column" gap="3">
-                        <Flex justify="between" align="center">
-                          <Text size="3" weight="bold">
-                            Question {qIndex + 1}
-                          </Text>
-                          <IconButton
-                            variant="soft"
-                            color="red"
-                            onClick={() => handleRemoveQuestion(qIndex)}
-                          >
-                            <TrashIcon width="18" height="18" />
-                          </IconButton>
-                        </Flex>
-
-                        <TextArea
-                          size="3"
-                          placeholder="Enter question"
-                          value={question.question}
-                          onChange={(e) =>
-                            handleQuestionChange(qIndex, e.target.value)
-                          }
-                        />
-
-                        {question.options.map((option, oIndex) => (
-                          <Flex
-                            key={oIndex}
-                            gap="2"
-                            align="center"
-                            justify="between"
-                          >
-                            <Radio
-                              size="3"
-                              color="grass"
-                              checked={option.isCorrect}
-                              onChange={() =>
-                                handleCorrectAnswer(qIndex, oIndex)
-                              }
-                            />
-                            <TextField.Root
-                              placeholder={`Option ${oIndex + 1}`}
-                              size="2"
-                              className="w-full"
-                              value={option.text}
-                              onChange={(e) =>
-                                handleOptionChange(
-                                  qIndex,
-                                  oIndex,
-                                  e.target.value
-                                )
-                              }
-                            />
-                            <IconButton
-                              variant="soft"
-                              color="red"
-                              onClick={() => handleRemoveOption(qIndex, oIndex)}
-                            >
-                              <XMarkIcon width="18" height="18" />
-                            </IconButton>
-                          </Flex>
-                        ))}
-
-                        <Button
-                          size="2"
-                          variant="outline"
-                          onClick={() => handleAddOption(qIndex)}
-                        >
-                          + Add Option
-                        </Button>
-                      </Flex>
-                    </Card>
-                  ))}
-
-                  <Button size="3" variant="soft" onClick={handleAddQuestion}>
-                    + Add More Question
-                  </Button>
-                  <Button
-                    size="4"
-                    variant="solid"
-                    onClick={handleSubmit}
-                    disabled={loading}
-                  >
-                    {loading ? "Creating Quiz..." : "Create Quiz"}
-                  </Button>
-                </Flex>
+        {questions.map((question, qIndex) => (
+          <Card key={qIndex} variant="classic" className="bg-gray-500/10">
+            <Flex direction="column" gap="3">
+              <Flex justify="between" align="center">
+                <Text size="3" weight="bold">
+                  Question {qIndex + 1}
+                </Text>
+                <IconButton
+                  variant="soft"
+                  color="red"
+                  onClick={() => handleRemoveQuestion(qIndex)}
+                >
+                  <TrashIcon width="18" height="18" />
+                </IconButton>
               </Flex>
+
+              <TextArea
+                size="3"
+                placeholder="Enter question"
+                value={question.question}
+                onChange={(e) => handleQuestionChange(qIndex, e.target.value)}
+              />
+
+              {question.options.map((option, oIndex) => (
+                <Flex key={oIndex} gap="2" align="center" justify="between">
+                  <Radio
+                    size="3"
+                    color="grass"
+                    checked={option.isCorrect}
+                    onChange={() => handleCorrectAnswer(qIndex, oIndex)}
+                  />
+                  <TextField.Root
+                    placeholder={`Option ${oIndex + 1}`}
+                    size="2"
+                    className="w-full"
+                    value={option.text}
+                    onChange={(e) =>
+                      handleOptionChange(qIndex, oIndex, e.target.value)
+                    }
+                  />
+                  <IconButton
+                    variant="soft"
+                    color="red"
+                    onClick={() => handleRemoveOption(qIndex, oIndex)}
+                  >
+                    <XMarkIcon width="18" height="18" />
+                  </IconButton>
+                </Flex>
+              ))}
+
+              <Button
+                size="2"
+                variant="outline"
+                onClick={() => handleAddOption(qIndex)}
+              >
+                + Add Option
+              </Button>
             </Flex>
-          </Flex>
-        </Flex>
-      </Section>
-    </Box>
+          </Card>
+        ))}
+
+        <Button size="3" variant="soft" onClick={handleAddQuestion}>
+          + Add More Question
+        </Button>
+        <Button
+          size="4"
+          variant="solid"
+          onClick={handleSubmit}
+          disabled={loading}
+        >
+          {loading ? "Creating Quiz..." : "Create Quiz"}
+        </Button>
+      </Flex>
+    </Flex>
   );
 }
 

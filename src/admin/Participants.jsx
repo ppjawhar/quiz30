@@ -4,8 +4,6 @@ import { collection, getDocs, deleteDoc, doc } from "firebase/firestore"; // Fir
 import { db } from "../firebase"; // Import Firestore instance
 import {
   Flex,
-  Box,
-  Section,
   Text,
   Button,
   Table,
@@ -15,9 +13,6 @@ import {
   AlertDialog,
 } from "@radix-ui/themes";
 import { TrashIcon } from "@heroicons/react/24/outline";
-
-import AdminHeader from "../components/AdminHeader";
-import AdminSidemenu from "../components/AdminSidemenu";
 
 function DeleteParticipant({ participantId, onDelete }) {
   const handleDelete = async () => {
@@ -92,79 +87,61 @@ function Participants() {
   };
 
   return (
-    <Box>
-      <Section size="4" py="7" px="7">
-        <Flex gap="6" direction="column">
-          <AdminHeader />
-          <Flex gap="1">
-            <AdminSidemenu />
-            <Flex direction="column" gap="7" flexGrow="1">
-              <Flex direction="column" gap="5">
-                <Flex gap="4" align="center">
-                  <Text size="5" className="font-semibold">
-                    Participants
-                  </Text>
-                  <Button
-                    size="2"
-                    variant="soft"
-                    onClick={() => navigate("/add-participant")}
-                  >
-                    + Add
-                  </Button>
-                </Flex>
+    <Flex direction="column" gap="7" flexGrow="1">
+      <Flex gap="4" align="center" justify="between">
+        <Text size="5" className="font-semibold">
+          Participants
+        </Text>
+        <Button
+          size="2"
+          variant="soft"
+          onClick={() => navigate("/add-participant")}
+        >
+          + Add Participants
+        </Button>
+      </Flex>
 
-                {loading ? (
-                  <Text>
-                    <Spinner />
-                  </Text>
-                ) : participants.length > 0 ? (
-                  <Table.Root variant="surface">
-                    <Table.Header>
-                      <Table.Row>
-                        <Table.ColumnHeaderCell>Name</Table.ColumnHeaderCell>
-                        <Table.ColumnHeaderCell>Age</Table.ColumnHeaderCell>
-                        <Table.ColumnHeaderCell>
-                          Phone Number
-                        </Table.ColumnHeaderCell>
-                        <Table.ColumnHeaderCell>
-                          Participation No.
-                        </Table.ColumnHeaderCell>
-                        <Table.ColumnHeaderCell></Table.ColumnHeaderCell>
-                      </Table.Row>
-                    </Table.Header>
+      {loading ? (
+        <Text>
+          <Spinner />
+        </Text>
+      ) : participants.length > 0 ? (
+        <Table.Root variant="surface">
+          <Table.Header>
+            <Table.Row>
+              <Table.ColumnHeaderCell>Name</Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell>Age</Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell>Phone Number</Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell>Participation No.</Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell></Table.ColumnHeaderCell>
+            </Table.Row>
+          </Table.Header>
 
-                    <Table.Body>
-                      {participants.map((participant) => (
-                        <Table.Row key={participant.id}>
-                          <Table.RowHeaderCell>
-                            {participant.name}
-                          </Table.RowHeaderCell>
-                          <Table.Cell>{participant.age}</Table.Cell>
-                          <Table.Cell>{participant.phone}</Table.Cell>
-                          <Table.Cell>
-                            <Badge variant="outline">
-                              {participant.participationNumber}
-                            </Badge>
-                          </Table.Cell>
-                          <Table.Cell align="right">
-                            <DeleteParticipant
-                              participantId={participant.id}
-                              onDelete={handleDeleteFromState}
-                            />
-                          </Table.Cell>
-                        </Table.Row>
-                      ))}
-                    </Table.Body>
-                  </Table.Root>
-                ) : (
-                  <Text>No participants found.</Text>
-                )}
-              </Flex>
-            </Flex>
-          </Flex>
-        </Flex>
-      </Section>
-    </Box>
+          <Table.Body>
+            {participants.map((participant) => (
+              <Table.Row key={participant.id}>
+                <Table.RowHeaderCell>{participant.name}</Table.RowHeaderCell>
+                <Table.Cell>{participant.age}</Table.Cell>
+                <Table.Cell>{participant.phone}</Table.Cell>
+                <Table.Cell>
+                  <Badge variant="outline">
+                    {participant.participationNumber}
+                  </Badge>
+                </Table.Cell>
+                <Table.Cell align="right">
+                  <DeleteParticipant
+                    participantId={participant.id}
+                    onDelete={handleDeleteFromState}
+                  />
+                </Table.Cell>
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table.Root>
+      ) : (
+        <Text>No participants found.</Text>
+      )}
+    </Flex>
   );
 }
 
