@@ -47,9 +47,27 @@ function Quizzes() {
   }, []);
 
   // Update quiz status
+  // Update quiz status
   const handleStatusChange = async (quizId, newStatus) => {
     try {
+      if (newStatus === "Published") {
+        // Check if there's already a published quiz
+        const alreadyPublished = quizzes.find(
+          (quiz) => quiz.status === "Published"
+        );
+
+        if (alreadyPublished) {
+          alert(
+            `Only one quiz can be published at a time. Unpublish "${alreadyPublished.quizName}" first.`
+          );
+          return;
+        }
+      }
+
+      // Update Firestore document
       await updateDoc(doc(db, "quizzes", quizId), { status: newStatus });
+
+      // Update state
       setQuizzes((prevQuizzes) =>
         prevQuizzes.map((quiz) =>
           quiz.id === quizId ? { ...quiz, status: newStatus } : quiz

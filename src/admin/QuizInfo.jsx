@@ -19,6 +19,7 @@ import {
   Dialog,
   AlertDialog,
   Radio,
+  Spinner,
 } from "@radix-ui/themes";
 import {
   ArrowLeftIcon,
@@ -132,7 +133,7 @@ function QuizInfo() {
     }
   };
 
-  if (loading) return <Text>Loading...</Text>;
+  if (loading) return <Spinner />;
 
   return (
     <Flex direction="column" gap="7" flexGrow="1">
@@ -144,7 +145,7 @@ function QuizInfo() {
           </Button>
         </Flex>
 
-        <Flex direction="column" gap="7">
+        <Flex direction="column" gap="5">
           <Flex justify="between">
             <Flex direction="column">
               <Text size="5" className="font-semibold">
@@ -233,37 +234,48 @@ function QuizInfo() {
                 </Dialog.Content>
               </Dialog.Root>
 
-              <Button
+              {/* <Button
                 variant="soft"
                 color={quiz.status === "Published" ? "red" : "grass"}
                 onClick={handleStatusChange}
               >
                 {quiz.status === "Published" ? "Unpublish" : "Publish"}
-              </Button>
+              </Button> */}
             </Flex>
           </Flex>
-          <Flex gap="5">
-            <Flex gap="2" align="center">
-              <Text size="3">Status:</Text>
-              <Badge
-                color={quiz.status === "Published" ? "grass" : "red"}
-                variant="outline"
-              >
-                {quiz.status}
-              </Badge>
-            </Flex>
-            <Flex gap="2" align="center">
-              <Text size="3">Total Questions:</Text>
-              <Badge color="gray" variant="outline">
-                {quiz.numberOfQuestions}
-              </Badge>
-            </Flex>
-            <Flex gap="2" align="center">
-              <Text size="3">Total Attempts:</Text>
-              <Badge color="gray" variant="outline">
-                {quiz.numberOfAttempts}
-              </Badge>
-            </Flex>
+          <Flex gap="2">
+            <Card className="w-56">
+              <Flex direction="column" gap="3" align="start">
+                <Text size="3" weight="bold">
+                  Status:
+                </Text>
+                <Badge
+                  size="3"
+                  color={quiz.status === "Published" ? "grass" : "red"}
+                  variant="outline"
+                >
+                  {quiz.status}
+                </Badge>
+              </Flex>
+            </Card>
+            <Card className="w-56">
+              <Flex direction="column" gap="3" align="start">
+                <Text size="3" weight="bold">
+                  Total Attempts:
+                </Text>
+                <Badge color="gray" variant="outline" size="3">
+                  {quiz.numberOfAttempts}
+                </Badge>
+              </Flex>
+            </Card>
+            {/* <Card className="w-56">
+              <Flex direction="column" gap="3" align="start">
+                <Text size="3">Total Questions:</Text>
+                <Badge color="gray" variant="outline" size="3">
+                  {quiz.numberOfQuestions}
+                </Badge>
+              </Flex>
+            </Card> */}
           </Flex>
         </Flex>
       </Flex>
