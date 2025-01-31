@@ -265,7 +265,7 @@ function QuizInfo() {
                   Total Attempts:
                 </Text>
                 <Badge color="gray" variant="outline" size="3">
-                  {quiz.responses.length}
+                  {quiz.responses ? quiz.responses.length : "0"}
                 </Badge>
               </Flex>
             </Card>
@@ -275,7 +275,7 @@ function QuizInfo() {
                   Total Questions:
                 </Text>
                 <Badge color="gray" variant="outline" size="3">
-                  {quiz.questions.length}
+                  {quiz.questions ? quiz.questions.length : "0"}
                 </Badge>
               </Flex>
             </Card>

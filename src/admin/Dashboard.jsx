@@ -18,6 +18,7 @@ import PointTable from "../components/PointTable";
 function Dashboard() {
   const [quizzes, setQuizzes] = useState([]);
   const [participants, setParticipants] = useState([]);
+
   // Fetch quizzes from Firestore
   useEffect(() => {
     const fetchQuizzes = async () => {
@@ -30,8 +31,6 @@ function Dashboard() {
         setQuizzes(quizData);
       } catch (error) {
         console.error("Error fetching quizzes:", error);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -47,10 +46,8 @@ function Dashboard() {
           ...doc.data(), // Spread the document data
         }));
         setParticipants(participantsData);
-        setLoading(false);
       } catch (err) {
         console.error("Error fetching participants:", err);
-        setLoading(false);
       }
     };
 

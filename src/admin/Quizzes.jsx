@@ -135,13 +135,17 @@ function Quizzes() {
                     <Flex align="center" gap="1">
                       <Text>Total attempts:</Text>
                       <Badge variant="outline" color="gray">
-                        <Strong>{quiz.responses.length}</Strong>
+                        <Strong>
+                          {quiz.responses ? quiz.responses.length : "0"}
+                        </Strong>
                       </Badge>
                     </Flex>
                     <Flex align="center" gap="1">
                       <Text>Total questions:</Text>
                       <Badge variant="outline" color="gray">
-                        <Strong>{quiz.questions.length}</Strong>
+                        <Strong>
+                          {quiz.questions ? quiz.questions.length : "0"}
+                        </Strong>
                       </Badge>
                     </Flex>
                   </Flex>
