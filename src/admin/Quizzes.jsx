@@ -179,8 +179,6 @@ function Quizzes() {
                         </DropdownMenu.Item>
                       )}
 
-                      <DropdownMenu.Item>Edit</DropdownMenu.Item>
-
                       <DropdownMenu.Item
                         color="red"
                         onClick={() => handleDeleteQuiz(quiz.id)}

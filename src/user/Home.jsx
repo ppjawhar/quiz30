@@ -221,7 +221,7 @@ function Home() {
                     Your participation number:
                   </Text>
                   <TextField.Root
-                    className="!h-10 !bg-gray-200/30"
+                    className="!h-10 !bg-gray-200/30 text-lg"
                     size="3"
                     placeholder="Enter your participation number"
                     value={participationNumber}
@@ -246,7 +246,7 @@ function Home() {
             {participant && (
               <Flex direction="column" gap="5">
                 <Card variant="classic">
-                  <Flex direction="column" gap="1" p="2">
+                  <Flex direction="column" gap="1" p="2" justify="start">
                     <Flex align="center" justify="between" gap="4">
                       <Text size="5" weight="bold" color="solid">
                         Participant Details:
@@ -296,11 +296,12 @@ function Home() {
                       </Text>
                       <Text size="4">{participant.phone}</Text>
                     </Flex>
-                    <Link onClick={handleReset} mt="4">
-                      Play as another participant?
-                    </Link>
                   </Flex>
                 </Card>
+                <Button variant="soft" onClick={handleReset}>
+                  Play as another participant
+                </Button>
+                <Separator size="4" />
 
                 {/* Show quiz details */}
                 {quizLoading && <Spinner />}
@@ -312,12 +313,9 @@ function Home() {
                         {quiz.quizName}
                       </Text>
                       <Text size="4" color="gray">
-                        {quiz.description} -{" "}
-                        <Strong>{date.toDateString()}</Strong>
+                        {quiz.description}
                       </Text>
                     </Flex>
-
-                    <Separator size="4" />
 
                     <Flex gap="9" direction="column">
                       {quiz.questions.map((question, index) => (

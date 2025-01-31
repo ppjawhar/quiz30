@@ -27,6 +27,7 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import QuizQustionTab from "./QuizQuestionTab";
+import QuizAttemptsTab from "./QuizAttemptsTab";
 
 function QuizInfo() {
   const { id } = useParams();
@@ -280,13 +281,16 @@ function QuizInfo() {
         </Flex>
       </Flex>
 
-      <Tabs.Root defaultValue="questions" size="2">
+      <Tabs.Root defaultValue="attempts" size="2">
         <Tabs.List>
+          <Tabs.Trigger value="attempts">Attempts</Tabs.Trigger>
           <Tabs.Trigger value="questions">Questions</Tabs.Trigger>
-          <Tabs.Trigger value="info">Quiz Info</Tabs.Trigger>
         </Tabs.List>
 
         <Box pt="3">
+          <Tabs.Content value="attempts">
+            <QuizAttemptsTab quiz={quiz} />
+          </Tabs.Content>
           <Tabs.Content value="questions">
             <QuizQustionTab
               quiz={quiz}
@@ -296,9 +300,6 @@ function QuizInfo() {
               handleDeleteQuestion={handleDeleteQuestion}
               handleAddQuestion={handleAddQuestion}
             />
-          </Tabs.Content>
-          <Tabs.Content value="info">
-            <Flex direction="row" justify="between"></Flex>
           </Tabs.Content>
         </Box>
       </Tabs.Root>
