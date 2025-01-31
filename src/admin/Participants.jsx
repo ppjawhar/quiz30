@@ -11,6 +11,7 @@ import {
   Spinner,
   IconButton,
   AlertDialog,
+  Strong,
 } from "@radix-ui/themes";
 import { TrashIcon } from "@heroicons/react/24/outline";
 
@@ -87,7 +88,7 @@ function Participants() {
   };
 
   return (
-    <Flex direction="column" gap="7" flexGrow="1">
+    <Flex direction="column" gap="5" flexGrow="1">
       <Flex gap="4" align="center" justify="between">
         <Text size="5" className="font-semibold">
           Participants
@@ -120,7 +121,9 @@ function Participants() {
           <Table.Body>
             {participants.map((participant) => (
               <Table.Row key={participant.id}>
-                <Table.RowHeaderCell>{participant.name}</Table.RowHeaderCell>
+                <Table.RowHeaderCell>
+                  <Strong>{participant.name}</Strong>
+                </Table.RowHeaderCell>
                 <Table.Cell>{participant.age}</Table.Cell>
                 <Table.Cell>{participant.phone}</Table.Cell>
                 <Table.Cell>

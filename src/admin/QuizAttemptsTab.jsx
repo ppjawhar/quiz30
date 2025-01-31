@@ -73,7 +73,9 @@ function QuizAttemptsTab({ quiz }) {
               <Table.Cell align="right">
                 <Dialog.Root>
                   <Dialog.Trigger>
-                    <Button>View</Button>
+                    <Button variant="soft" size="2">
+                      View
+                    </Button>
                   </Dialog.Trigger>
 
                   <Dialog.Content maxWidth="500px">
@@ -100,21 +102,23 @@ function QuizAttemptsTab({ quiz }) {
                       </Text>
                       <Separator size="4" />
                       <Text weight="bold">Submitted Answer:</Text>
-                      {q.answers.map((a, qIndex) => (
-                        <Flex direction="column" gap="3">
-                          <Text>
-                            <Strong>{qIndex + 1}. </Strong>
-                            {a.question}
-                          </Text>
-                          <Badge
-                            size="3"
-                            variant="soft"
-                            color={a.isCorrect ? "green" : "red"}
-                          >
-                            {a.selectedAnswer}
-                          </Badge>
-                        </Flex>
-                      ))}
+                      <Flex direction="column" gap="5">
+                        {q.answers.map((a, qIndex) => (
+                          <Flex direction="column" gap="3">
+                            <Text>
+                              <Strong>{qIndex + 1}. </Strong>
+                              {a.question}
+                            </Text>
+                            <Badge
+                              size="3"
+                              variant="soft"
+                              color={a.isCorrect ? "green" : "red"}
+                            >
+                              {a.selectedAnswer}
+                            </Badge>
+                          </Flex>
+                        ))}
+                      </Flex>
                     </Flex>
                   </Dialog.Content>
                 </Dialog.Root>

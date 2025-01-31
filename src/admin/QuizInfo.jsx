@@ -265,18 +265,20 @@ function QuizInfo() {
                   Total Attempts:
                 </Text>
                 <Badge color="gray" variant="outline" size="3">
-                  {quiz.numberOfAttempts}
+                  {quiz.responses.length}
                 </Badge>
               </Flex>
             </Card>
-            {/* <Card className="w-56">
+            <Card className="w-56">
               <Flex direction="column" gap="3" align="start">
-                <Text size="3">Total Questions:</Text>
+                <Text size="3" weight="bold">
+                  Total Questions:
+                </Text>
                 <Badge color="gray" variant="outline" size="3">
-                  {quiz.numberOfQuestions}
+                  {quiz.questions.length}
                 </Badge>
               </Flex>
-            </Card> */}
+            </Card>
           </Flex>
         </Flex>
       </Flex>

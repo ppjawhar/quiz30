@@ -18,6 +18,7 @@ import {
   QuestionMarkCircleIcon,
   RocketLaunchIcon,
   PuzzlePieceIcon,
+  TrophyIcon,
 } from "@heroicons/react/24/outline";
 
 function AdminSidemenu() {
@@ -72,6 +73,16 @@ function AdminSidemenu() {
         <Button
           variant="ghost"
           size="3"
+          color={`${isActive("/leaderboard") ? "" : "gray"}`}
+          className="!justify-start"
+          onClick={() => navigate("/leaderboard")}
+        >
+          <TrophyIcon className="size-5" />
+          Leaderboard
+        </Button>
+        <Button
+          variant="ghost"
+          size="3"
           color={`${
             isActive(["/participants", "/add-participant"]) ? "" : "gray"
           }`}
@@ -80,16 +91,6 @@ function AdminSidemenu() {
         >
           <UsersIcon className="size-5" />
           Participants
-        </Button>
-        <Button
-          variant="ghost"
-          size="3"
-          color={`${isActive("/leaderboard") ? "" : "gray"}`}
-          className="!justify-start"
-          onClick={() => navigate("/dashboard")}
-        >
-          <RocketLaunchIcon className="size-5" />
-          Leaderboard
         </Button>
       </Flex>
       <Button size="3" variant="soft" onClick={handleLogout}>

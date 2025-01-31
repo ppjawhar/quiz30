@@ -9,6 +9,7 @@ import AddParticipant from "./admin/AddParticipant";
 import Quizzes from "./admin/Quizzes";
 import AddQuiz from "./admin/AddQuiz";
 import QuizInfo from "./admin/QuizInfo";
+import Leaderboard from "./admin/Leaderboard";
 
 import PlayQuiz from "./user/PlayQuiz";
 
@@ -35,6 +36,7 @@ function App() {
           <Route path="/quiz/:id" element={<QuizInfo />} /> {/* New Route */}
           <Route path="/participants" element={<Participants />} />
           <Route path="/add-participant" element={<AddParticipant />} />
+          <Route path="/leaderboard" element={<Leaderboard />} />
         </Route>
       </Routes>
     </BrowserRouter>

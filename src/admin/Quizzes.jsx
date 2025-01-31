@@ -93,7 +93,7 @@ function Quizzes() {
   };
 
   return (
-    <Flex direction="column" gap="7" flexGrow="1">
+    <Flex direction="column" gap="5" flexGrow="1">
       <Flex gap="4" align="center" justify="between">
         <Text size="5" className="font-semibold">
           Quizzes
@@ -121,18 +121,6 @@ function Quizzes() {
                   </Flex>
                   <Flex direction="row" gap="4" justify="">
                     <Flex align="center" gap="1">
-                      <Text>Total attempts:</Text>
-                      <Badge variant="outline" color="gray">
-                        <Strong>{quiz.numberOfAttempts}</Strong>
-                      </Badge>
-                    </Flex>
-                    <Flex align="center" gap="1">
-                      <Text>Total questions:</Text>
-                      <Badge variant="outline" color="gray">
-                        <Strong>{quiz.numberOfQuestions}</Strong>
-                      </Badge>
-                    </Flex>
-                    <Flex align="center" gap="1">
                       <Text>Status:</Text>
                       {quiz.status === "Unpublished" ? (
                         <Badge variant="outline" color="red">
@@ -143,6 +131,18 @@ function Quizzes() {
                           <Strong>{quiz.status}</Strong>
                         </Badge>
                       )}
+                    </Flex>
+                    <Flex align="center" gap="1">
+                      <Text>Total attempts:</Text>
+                      <Badge variant="outline" color="gray">
+                        <Strong>{quiz.responses.length}</Strong>
+                      </Badge>
+                    </Flex>
+                    <Flex align="center" gap="1">
+                      <Text>Total questions:</Text>
+                      <Badge variant="outline" color="gray">
+                        <Strong>{quiz.questions.length}</Strong>
+                      </Badge>
                     </Flex>
                   </Flex>
                 </Flex>
