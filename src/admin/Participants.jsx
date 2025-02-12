@@ -91,7 +91,7 @@ function Participants() {
     <Flex direction="column" gap="5" flexGrow="1">
       <Flex gap="4" align="center" justify="between">
         <Text size="5" className="font-semibold">
-          Participants
+          <span className="text-2xl">🧑‍🤝‍🧑</span> Participants
         </Text>
         <Button
           size="2"

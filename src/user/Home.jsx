@@ -223,6 +223,7 @@ function Home() {
                   <TextField.Root
                     className="!h-10 !bg-gray-200/30 text-lg"
                     size="3"
+                    type="number"
                     placeholder="Enter your participation number"
                     value={participationNumber}
                     onChange={(e) => setParticipationNumber(e.target.value)}
@@ -324,14 +325,12 @@ function Home() {
                             {index + 1}. {question.question}
                           </Text>
 
-                          <RadioCards.Root
-                            columns="1"
-                            disabled={alreadySubmitted}
-                          >
+                          <RadioCards.Root columns="1">
                             {question.options.map((option, optionIndex) => (
                               <RadioCards.Item
                                 key={optionIndex}
                                 value={option}
+                                disabled={alreadySubmitted}
                                 onClick={() =>
                                   handleOptionSelect(index, option)
                                 }

@@ -120,7 +120,7 @@ function QuizQuestionTab({
                     </IconButton>
                   </Dialog.Trigger>
 
-                  <Dialog.Content maxWidth="450px">
+                  <Dialog.Content maxWidth="600px">
                     <Dialog.Title>Edit Question</Dialog.Title>
                     <Flex direction="column" gap="3">
                       <label>
@@ -275,7 +275,7 @@ function QuizQuestionTab({
         <Dialog.Trigger>
           <Button variant="soft">+ Add More Question</Button>
         </Dialog.Trigger>
-        <Dialog.Content maxWidth="450px">
+        <Dialog.Content maxWidth="600px">
           <Dialog.Title>Add Question</Dialog.Title>
           <Flex direction="column" gap="3">
             <label>

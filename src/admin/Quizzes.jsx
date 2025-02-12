@@ -96,7 +96,7 @@ function Quizzes() {
     <Flex direction="column" gap="5" flexGrow="1">
       <Flex gap="4" align="center" justify="between">
         <Text size="5" className="font-semibold">
-          Quizzes
+          <span className="text-2xl">🧩</span> Quizzes
         </Text>
         <Button size="2" variant="soft" onClick={() => navigate("/add-quiz")}>
           + Create New Quiz

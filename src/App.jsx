@@ -11,15 +11,12 @@ import AddQuiz from "./admin/AddQuiz";
 import QuizInfo from "./admin/QuizInfo";
 import Leaderboard from "./admin/Leaderboard";
 
-import PlayQuiz from "./user/PlayQuiz";
-
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/play-quiz" element={<PlayQuiz />} />
 
         {/* Admin Pages with Layout */}
         <Route

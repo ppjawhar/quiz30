@@ -54,8 +54,7 @@ function AdminSidemenu() {
           className="!justify-start"
           onClick={() => navigate("/dashboard")}
         >
-          <HomeIcon className="size-5" />
-          Home
+          <span className="text-2xl">🏠</span> Home
         </Button>
 
         <Button
@@ -67,7 +66,7 @@ function AdminSidemenu() {
           className="!justify-start"
           onClick={() => navigate("/quizzes")}
         >
-          <PuzzlePieceIcon className="size-5" />
+          <span className="text-2xl">🧩</span>
           Quizzes
         </Button>
         <Button
@@ -77,7 +76,7 @@ function AdminSidemenu() {
           className="!justify-start"
           onClick={() => navigate("/leaderboard")}
         >
-          <TrophyIcon className="size-5" />
+          <span className="text-2xl">🏆</span>
           Leaderboard
         </Button>
         <Button
@@ -89,13 +88,18 @@ function AdminSidemenu() {
           className="!justify-start"
           onClick={() => navigate("/participants")}
         >
-          <UsersIcon className="size-5" />
+          <span className="text-2xl">🧑‍🤝‍🧑</span>
           Participants
         </Button>
       </Flex>
-      <Button size="3" variant="soft" onClick={handleLogout}>
-        Logout
-      </Button>
+      <Flex direction="column" gap="3">
+        <Button size="3" variant="soft" onClick={handleLogout}>
+          Logout
+        </Button>
+        <Text align="center" size="2" color="gray">
+          V 1.0.0
+        </Text>
+      </Flex>
     </Flex>
   );
 }

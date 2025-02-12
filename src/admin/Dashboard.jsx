@@ -74,7 +74,7 @@ function Dashboard() {
                 {quizzes.length}
               </Text>
             </Box>
-            <PuzzlePieceIcon className="size-7 text-gray-500/50" />
+            <Text size="8">🧩</Text>
           </Flex>
         </Card>
         <Card>
@@ -95,13 +95,13 @@ function Dashboard() {
                 {participants.length}
               </Text>
             </Box>
-            <UsersIcon className="size-7 text-gray-500/50" />
+            <Text size="8">🧑‍🤝‍🧑</Text>
           </Flex>
         </Card>
       </Flex>
       <Flex direction="column" gap="4">
         <Text size="5" className="font-semibold">
-          Leaderboard
+          <span className="text-2xl">🏆</span> Leaderboard
         </Text>
         <PointTable />
       </Flex>
