@@ -97,7 +97,7 @@ function AdminSidemenu() {
           Logout
         </Button>
         <Text align="center" size="2" color="gray">
-          V 1.0.0
+          V 1.0.1
         </Text>
       </Flex>
     </Flex>
