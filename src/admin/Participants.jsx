@@ -111,7 +111,8 @@ function Participants() {
           <Table.Header>
             <Table.Row>
               <Table.ColumnHeaderCell>Name</Table.ColumnHeaderCell>
-              <Table.ColumnHeaderCell>Age</Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell>Relation Type</Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell>Relative Name</Table.ColumnHeaderCell>
               <Table.ColumnHeaderCell>Phone Number</Table.ColumnHeaderCell>
               <Table.ColumnHeaderCell>Participation No.</Table.ColumnHeaderCell>
               <Table.ColumnHeaderCell></Table.ColumnHeaderCell>
@@ -124,7 +125,19 @@ function Participants() {
                 <Table.RowHeaderCell>
                   <Strong>{participant.name}</Strong>
                 </Table.RowHeaderCell>
-                <Table.Cell>{participant.age}</Table.Cell>
+                <Table.Cell>
+                  {participant.relation_type === "son"
+                    ? "S/o"
+                    : participant.relation_type === "daughter"
+                    ? "D/o"
+                    : participant.relation_type === "wife"
+                    ? "W/o"
+                    : ""}
+                </Table.Cell>
+                {participant.relation_name != " " && (
+                  <Table.Cell>{participant.relative_name}</Table.Cell>
+                )}
+
                 <Table.Cell>{participant.phone}</Table.Cell>
                 <Table.Cell>
                   <Badge variant="outline">

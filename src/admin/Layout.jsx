@@ -1,19 +1,17 @@
 import { Outlet } from "react-router-dom";
-import { Flex, Box, Section, Separator } from "@radix-ui/themes";
-
-import AdminHeader from "../components/AdminHeader";
+import { Flex, Box, Section } from "@radix-ui/themes";
 import AdminSidemenu from "../components/AdminSidemenu";
-
+import AdminHeader from "../components/AdminHeader";
 function Layout() {
   return (
     <Box>
       <Section size="4" py="0">
         <Flex gap="0" direction="column">
-          {/* <AdminHeader /> */}
+          <AdminHeader />
           <Flex gap="0">
             <AdminSidemenu />
 
-            <Flex px="7" className="py-32" flexGrow="1">
+            <Flex px="7" pt="6" flexGrow="1">
               <Outlet />
             </Flex>
           </Flex>

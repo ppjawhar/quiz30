@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { collection, addDoc, query, where, getDocs } from "firebase/firestore"; // Firestore methods
-import { db } from "../firebase"; // Import Firestore instance
+import { collection, addDoc, query, where, getDocs } from "firebase/firestore";
+import { db } from "../firebase";
 import {
   Flex,
   Text,
@@ -9,37 +9,40 @@ import {
   Button,
   Table,
   IconButton,
+  Select,
 } from "@radix-ui/themes";
 import { ArrowLeftIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 function AddParticipant() {
+  // Set default relation_type to "son" for each participant
   const [participants, setParticipants] = useState([
-    { name: "", age: "", phone: "" },
+    { name: "", relation_type: "son", relative_name: "", phone: "" },
   ]);
-  const [loading, setLoading] = useState(false); // For submit loading state
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
   // Generate a unique 4-digit participation number
   const generateParticipationNumber = async () => {
     while (true) {
-      const participationNumber = Math.floor(1000 + Math.random() * 9000); // Generate random 4-digit number
-
+      const participationNumber = Math.floor(1000 + Math.random() * 9000);
       const participantsQuery = query(
         collection(db, "participants"),
         where("participationNumber", "==", participationNumber)
       );
       const querySnapshot = await getDocs(participantsQuery);
-
       if (querySnapshot.empty) {
         return participationNumber;
       }
     }
   };
 
-  // Add a new blank participant row
+  // Add a new blank participant row with default relation_type
   const handleAddRow = () => {
-    setParticipants([...participants, { name: "", age: "", phone: "" }]);
+    setParticipants([
+      ...participants,
+      { name: "", relation_type: "son", relative_name: "", phone: "" },
+    ]);
   };
 
   // Update participant details in the table
@@ -61,26 +64,25 @@ function AddParticipant() {
     setLoading(true);
 
     try {
-      // Validate inputs
+      // Validate that each participant has a name and phone
       for (const participant of participants) {
-        if (!participant.name || !participant.age || !participant.phone) {
-          setError("All fields are required for each participant.");
+        if (!participant.name || !participant.phone) {
+          setError("Name and phone number are required for each participant.");
           setLoading(false);
           return;
         }
       }
 
-      // Add each participant to Firestore
+      // Add each participant to Firestore with a unique participation number
       for (const participant of participants) {
         const participationNumber = await generateParticipationNumber();
         await addDoc(collection(db, "participants"), {
           ...participant,
-          age: Number(participant.age),
           participationNumber,
         });
       }
 
-      navigate("/participants"); // Redirect to participants list
+      navigate("/participants");
     } catch (err) {
       console.error("Error adding participants:", err);
       setError("Failed to add participants. Please try again.");
@@ -116,7 +118,7 @@ function AddParticipant() {
           <Table.Row>
             <Table.ColumnHeaderCell></Table.ColumnHeaderCell>
             <Table.ColumnHeaderCell>Participant Name</Table.ColumnHeaderCell>
-            <Table.ColumnHeaderCell>Age</Table.ColumnHeaderCell>
+            <Table.ColumnHeaderCell>Relationship</Table.ColumnHeaderCell>
             <Table.ColumnHeaderCell>Phone Number</Table.ColumnHeaderCell>
             <Table.ColumnHeaderCell></Table.ColumnHeaderCell>
           </Table.Row>
@@ -136,15 +138,35 @@ function AddParticipant() {
                 />
               </Table.RowHeaderCell>
               <Table.Cell>
-                <TextField.Root
-                  placeholder="Enter Age"
-                  size="2"
-                  type="number"
-                  value={participant.age}
-                  onChange={(e) =>
-                    handleInputChange(index, "age", e.target.value)
-                  }
-                />
+                <Flex gap="1" flexGrow="1">
+                  <Select.Root
+                    value={participant.relation_type}
+                    onValueChange={(value) =>
+                      handleInputChange(index, "relation_type", value)
+                    }
+                  >
+                    <Select.Trigger />
+                    <Select.Content>
+                      <Select.Group>
+                        <Select.Label>Relation Type</Select.Label>
+                        <Select.Item value="son">S/o</Select.Item>
+                        <Select.Item value="daughter">D/o</Select.Item>
+                        <Select.Item value="wife">W/o</Select.Item>
+                      </Select.Group>
+                    </Select.Content>
+                  </Select.Root>
+
+                  <TextField.Root
+                    placeholder="Enter relative name"
+                    size="2"
+                    type="text"
+                    value={participant.relative_name}
+                    className="w-full"
+                    onChange={(e) =>
+                      handleInputChange(index, "relative_name", e.target.value)
+                    }
+                  />
+                </Flex>
               </Table.Cell>
               <Table.Cell>
                 <TextField.Root

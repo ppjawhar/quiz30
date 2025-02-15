@@ -1,10 +1,14 @@
+import { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth"; // Firebase sign-out method
 import { auth } from "../firebase"; // Import your Firebase auth instance
-import { Flex, Text, Button } from "@radix-ui/themes";
+import { Flex, Text, Button, IconButton } from "@radix-ui/themes";
+import { SunIcon, MoonIcon } from "@radix-ui/react-icons";
+import ThemeContext from "../ThemeContext";
 
 function AdminHeader() {
   const navigate = useNavigate();
+  const { appearance, toggleAppearance } = useContext(ThemeContext);
 
   const handleLogout = async () => {
     try {
@@ -25,7 +29,14 @@ function AdminHeader() {
           Ramadan Quiz 2025
         </Text>
       </Flex>
-      
+      <IconButton
+        variant="soft"
+        color="gray"
+        size="3"
+        onClick={toggleAppearance}
+      >
+        {appearance === "dark" ? <SunIcon /> : <MoonIcon />}
+      </IconButton>
     </Flex>
   );
 }

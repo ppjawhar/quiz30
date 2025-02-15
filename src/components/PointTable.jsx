@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { Flex, Text, Table, Badge, Strong } from "@radix-ui/themes";
+import { Flex, Text, Table, Badge, Strong, Spinner } from "@radix-ui/themes";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase"; // Ensure Firebase is configured in this file
 
 function PointTable() {
   const [participants, setParticipants] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchLeaderboardData = async () => {
@@ -68,8 +69,10 @@ function PointTable() {
         );
 
         setParticipants(sortedLeaderboard);
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching leaderboard data:", error);
+        setLoading(false);
       }
     };
 
@@ -77,32 +80,44 @@ function PointTable() {
   }, []);
 
   return (
-    <Table.Root variant="surface">
-      <Table.Header>
-        <Table.Row>
-          <Table.ColumnHeaderCell>Participation No.</Table.ColumnHeaderCell>
-          <Table.ColumnHeaderCell>Name</Table.ColumnHeaderCell>
-          <Table.ColumnHeaderCell>Quiz Attended</Table.ColumnHeaderCell>
-          <Table.ColumnHeaderCell align="right">
-            Total Points
-          </Table.ColumnHeaderCell>
-        </Table.Row>
-      </Table.Header>
-      <Table.Body>
-        {participants.map((participant, index) => (
-          <Table.Row key={participant.participationNumber}>
-            <Table.RowHeaderCell>
-              <Badge variant="outline">{participant.participationNumber}</Badge>
-            </Table.RowHeaderCell>
-            <Table.Cell>{participant.name}</Table.Cell>
-            <Table.Cell>{participant.quizAttended}</Table.Cell>
-            <Table.Cell align="right">
-              <Strong>{participant.correctAnswers}</Strong>
-            </Table.Cell>
-          </Table.Row>
-        ))}
-      </Table.Body>
-    </Table.Root>
+    <>
+      {loading ? (
+        <Text>
+          <Spinner />
+        </Text>
+      ) : participants.length > 0 ? (
+        <Table.Root variant="surface">
+          <Table.Header>
+            <Table.Row>
+              <Table.ColumnHeaderCell>Participation No.</Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell>Name</Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell>Quiz Attended</Table.ColumnHeaderCell>
+              <Table.ColumnHeaderCell align="right">
+                Total Points
+              </Table.ColumnHeaderCell>
+            </Table.Row>
+          </Table.Header>
+          <Table.Body>
+            {participants.map((participant, index) => (
+              <Table.Row key={participant.participationNumber}>
+                <Table.RowHeaderCell>
+                  <Badge variant="outline">
+                    {participant.participationNumber}
+                  </Badge>
+                </Table.RowHeaderCell>
+                <Table.Cell>{participant.name}</Table.Cell>
+                <Table.Cell>{participant.quizAttended}</Table.Cell>
+                <Table.Cell align="right">
+                  <Strong>{participant.correctAnswers}</Strong>
+                </Table.Cell>
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table.Root>
+      ) : (
+        <Text>No participants found.</Text>
+      )}
+    </>
   );
 }
 

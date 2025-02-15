@@ -18,13 +18,23 @@ import {
   IconButton,
   Spinner,
   DropdownMenu,
+  AlertDialog,
+  Callout,
 } from "@radix-ui/themes";
-import { EllipsisHorizontalIcon } from "@heroicons/react/24/outline";
+import {
+  EllipsisHorizontalIcon,
+  ExclamationCircleIcon,
+} from "@heroicons/react/24/outline";
 
 function Quizzes() {
   const [quizzes, setQuizzes] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  // Instead of a boolean, store the quiz ID to delete
+  const [quizToDelete, setQuizToDelete] = useState(null);
+  // State for publish error alert
+  const [publishAlertOpen, setPublishAlertOpen] = useState(false);
+  const [publishErrorMessage, setPublishErrorMessage] = useState("");
 
   // Fetch quizzes from Firestore
   useEffect(() => {
@@ -47,7 +57,6 @@ function Quizzes() {
   }, []);
 
   // Update quiz status
-  // Update quiz status
   const handleStatusChange = async (quizId, newStatus) => {
     try {
       if (newStatus === "Published") {
@@ -57,9 +66,10 @@ function Quizzes() {
         );
 
         if (alreadyPublished) {
-          alert(
-            `Only one quiz can be published at a time. Unpublish "${alreadyPublished.quizName}" first.`
+          setPublishErrorMessage(
+            `Only one quiz can be published at a time. Unpublish the quiz "${alreadyPublished.quizName}" first.`
           );
+          setPublishAlertOpen(true);
           return;
         }
       }
@@ -80,15 +90,13 @@ function Quizzes() {
 
   // Delete quiz from Firestore
   const handleDeleteQuiz = async (quizId) => {
-    if (window.confirm("Are you sure you want to delete this quiz?")) {
-      try {
-        await deleteDoc(doc(db, "quizzes", quizId));
-        setQuizzes((prevQuizzes) =>
-          prevQuizzes.filter((quiz) => quiz.id !== quizId)
-        );
-      } catch (error) {
-        console.error("Error deleting quiz:", error);
-      }
+    try {
+      await deleteDoc(doc(db, "quizzes", quizId));
+      setQuizzes((prevQuizzes) =>
+        prevQuizzes.filter((quiz) => quiz.id !== quizId)
+      );
+    } catch (error) {
+      console.error("Error deleting quiz:", error);
     }
   };
 
@@ -119,7 +127,7 @@ function Quizzes() {
                       {quiz.description}
                     </Text>
                   </Flex>
-                  <Flex direction="row" gap="4" justify="">
+                  <Flex direction="row" gap="4">
                     <Flex align="center" gap="1">
                       <Text>Status:</Text>
                       {quiz.status === "Unpublished" ? (
@@ -182,10 +190,9 @@ function Quizzes() {
                           Unpublish
                         </DropdownMenu.Item>
                       )}
-
                       <DropdownMenu.Item
                         color="red"
-                        onClick={() => handleDeleteQuiz(quiz.id)}
+                        onClick={() => setQuizToDelete(quiz.id)}
                       >
                         Delete
                       </DropdownMenu.Item>
@@ -199,6 +206,74 @@ function Quizzes() {
       ) : (
         <Text>No quizzes found.</Text>
       )}
+
+      {/* AlertDialog for confirming quiz deletion */}
+      <AlertDialog.Root
+        open={!!quizToDelete}
+        onOpenChange={(open) => {
+          // When closed, reset the quizToDelete state
+          if (!open) {
+            setQuizToDelete(null);
+          }
+        }}
+      >
+        <AlertDialog.Content maxWidth="450px">
+          <AlertDialog.Title>Delete Quiz</AlertDialog.Title>
+          <AlertDialog.Description size="2">
+            Are you sure? This quiz will no longer be accessible.
+          </AlertDialog.Description>
+          <Flex gap="3" mt="4" justify="end">
+            <AlertDialog.Cancel>
+              <Button variant="soft" color="gray">
+                Cancel
+              </Button>
+            </AlertDialog.Cancel>
+            <AlertDialog.Action>
+              <Button
+                variant="solid"
+                color="red"
+                onClick={() => {
+                  handleDeleteQuiz(quizToDelete);
+                  setQuizToDelete(null);
+                }}
+              >
+                Delete
+              </Button>
+            </AlertDialog.Action>
+          </Flex>
+        </AlertDialog.Content>
+      </AlertDialog.Root>
+
+      {/* AlertDialog for publish error */}
+      <AlertDialog.Root
+        open={publishAlertOpen}
+        onOpenChange={(open) => {
+          if (!open) setPublishAlertOpen(false);
+        }}
+      >
+        <AlertDialog.Content maxWidth="450px">
+          <AlertDialog.Title>Publish Error</AlertDialog.Title>
+          <AlertDialog.Description size="2">
+            <Callout.Root color="red">
+              <Callout.Icon>
+                <ExclamationCircleIcon className="size-5" />
+              </Callout.Icon>
+              <Callout.Text>{publishErrorMessage}</Callout.Text>
+            </Callout.Root>
+          </AlertDialog.Description>
+          <Flex gap="3" mt="4" justify="end">
+            <AlertDialog.Action>
+              <Button
+                variant="soft"
+                color="gray"
+                onClick={() => setPublishAlertOpen(false)}
+              >
+                OK
+              </Button>
+            </AlertDialog.Action>
+          </Flex>
+        </AlertDialog.Content>
+      </AlertDialog.Root>
     </Flex>
   );
 }

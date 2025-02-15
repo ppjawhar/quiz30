@@ -1,4 +1,7 @@
+import { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Theme, ThemePanel } from "@radix-ui/themes";
+import ThemeContext from "./ThemeContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Home from "./user/Home";
 import Login from "./admin/Login";
@@ -12,31 +15,46 @@ import QuizInfo from "./admin/QuizInfo";
 import Leaderboard from "./admin/Leaderboard";
 
 function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
+  const [appearance, setAppearance] = useState("light");
 
-        {/* Admin Pages with Layout */}
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <Layout />
-            </ProtectedRoute>
-          }
-        >
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/quizzes" element={<Quizzes />} />
-          <Route path="/add-quiz" element={<AddQuiz />} />
-          <Route path="/quiz/:id" element={<QuizInfo />} /> {/* New Route */}
-          <Route path="/participants" element={<Participants />} />
-          <Route path="/add-participant" element={<AddParticipant />} />
-          <Route path="/leaderboard" element={<Leaderboard />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+  const toggleAppearance = () => {
+    setAppearance((prev) => (prev === "dark" ? "light" : "dark"));
+  };
+  return (
+    <ThemeContext.Provider value={{ appearance, toggleAppearance }}>
+      <Theme
+        accentColor="crimson"
+        radius="large"
+        scaling="90%"
+        appearance={appearance}
+      >
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+
+            {/* Admin Pages with Layout */}
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <Layout />
+                </ProtectedRoute>
+              }
+            >
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/quizzes" element={<Quizzes />} />
+              <Route path="/add-quiz" element={<AddQuiz />} />
+              <Route path="/quiz/:id" element={<QuizInfo />} />{" "}
+              {/* New Route */}
+              <Route path="/participants" element={<Participants />} />
+              <Route path="/add-participant" element={<AddParticipant />} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
+            </Route>
+          </Routes>
+        </BrowserRouter>
+      </Theme>
+    </ThemeContext.Provider>
   );
 }
 
