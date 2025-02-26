@@ -20,6 +20,7 @@ import {
   AlertDialog,
   Radio,
   Spinner,
+  Skeleton,
 } from "@radix-ui/themes";
 import {
   ArrowLeftIcon,
@@ -134,7 +135,62 @@ function QuizInfo() {
     }
   };
 
-  if (loading) return <Spinner />;
+  // //Skelton loading..
+  if (loading)
+    return (
+      <Flex direction="column" gap="7" flexGrow="1">
+        <Flex direction="column" gap="5">
+          <Flex justify="between">
+            <Skeleton>
+              <Button size="2" variant="soft">
+                <ArrowLeftIcon className="size-5" />
+                Back
+              </Button>
+            </Skeleton>
+          </Flex>
+          <Flex direction="column" gap="5">
+            <Flex justify="between">
+              <Flex direction="column" gap="1">
+                <Skeleton>
+                  <Text size="5" className="font-semibold">
+                    Quiz Name
+                  </Text>
+                </Skeleton>
+                <Skeleton>
+                  <Text size="3" color="gray">
+                    Quiz Description Quiz Description Quiz Description Quiz
+                    Description
+                  </Text>
+                </Skeleton>
+              </Flex>
+              <Flex gap="2">
+                <Skeleton>
+                  <IconButton variant="soft" color="red">
+                    <TrashIcon width="18" height="18" />
+                  </IconButton>
+                </Skeleton>
+                <Skeleton>
+                  <Button size="2" variant="soft">
+                    Edit Quiz Info
+                  </Button>
+                </Skeleton>
+              </Flex>
+            </Flex>
+            <Flex gap="2">
+              <Skeleton width="220px" height="80px">
+                <Card></Card>
+              </Skeleton>
+              <Skeleton width="220px" height="80px">
+                <Card></Card>
+              </Skeleton>
+              <Skeleton width="220px" height="80px">
+                <Card></Card>
+              </Skeleton>
+            </Flex>
+          </Flex>
+        </Flex>
+      </Flex>
+    );
 
   return (
     <Flex direction="column" gap="7" flexGrow="1">

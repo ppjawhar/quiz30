@@ -14,14 +14,14 @@ function EnterParticipationNumber({
           Your participation number:
         </Text>
         <TextField.Root
-          className="!h-10 !bg-gray-200/30 text-lg"
+          className=" text-lg"
           size="3"
           type="number"
           placeholder="Enter your participation number"
           value={participationNumber}
           onChange={(e) => setParticipationNumber(e.target.value)}
         />
-        <Button size="4" variant="solid" type="submit" disabled={loading}>
+        <Button size="3" variant="solid" type="submit" disabled={loading}>
           {loading ? <Spinner /> : "Submit"}
         </Button>
       </Flex>

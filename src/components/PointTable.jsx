@@ -1,5 +1,13 @@
 import { useState, useEffect } from "react";
-import { Flex, Text, Table, Badge, Strong, Spinner } from "@radix-ui/themes";
+import {
+  Flex,
+  Text,
+  Table,
+  Badge,
+  Strong,
+  Spinner,
+  Skeleton,
+} from "@radix-ui/themes";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase"; // Ensure Firebase is configured in this file
 
@@ -82,9 +90,9 @@ function PointTable() {
   return (
     <>
       {loading ? (
-        <Text>
-          <Spinner />
-        </Text>
+        <Skeleton width="100%" height="200px">
+          <Table.Root variant="surface"></Table.Root>
+        </Skeleton>
       ) : participants.length > 0 ? (
         <Table.Root variant="surface">
           <Table.Header>

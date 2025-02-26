@@ -11,7 +11,7 @@ function Layout() {
           <Flex gap="0">
             <AdminSidemenu />
 
-            <Flex px="7" pt="6" flexGrow="1">
+            <Flex px="7" pt="6" pb="9" flexGrow="1">
               <Outlet />
             </Flex>
           </Flex>

@@ -18,7 +18,9 @@ import {
   Button,
   Text,
   Separator,
+  Callout,
 } from "@radix-ui/themes";
+import { InfoCircledIcon } from "@radix-ui/react-icons";
 
 import Header from "../components/Header";
 import EnterParticipationNumber from "../components/user/EnterParticipationNumber";
@@ -39,36 +41,6 @@ function Home() {
   const [submittingQuiz, setSubmittingQuiz] = useState(false);
   const [alreadySubmitted, setAlreadySubmitted] = useState(false);
 
-  useEffect(() => {
-    if (participant && quizId) {
-      checkIfAlreadySubmitted(quizId);
-    }
-  }, [participant, quizId]);
-
-  // Fetch the published quiz from Firestore
-  const fetchPublishedQuiz = async () => {
-    setQuizLoading(true);
-    try {
-      const quizzesRef = collection(db, "quizzes");
-      const q = query(quizzesRef, where("status", "==", "Published"));
-
-      const querySnapshot = await getDocs(q);
-      if (!querySnapshot.empty) {
-        const quizDoc = querySnapshot.docs[0];
-        const quizData = quizDoc.data();
-        setQuiz(quizData);
-        setQuizId(quizDoc.id);
-        checkIfAlreadySubmitted(quizDoc.id);
-      } else {
-        setQuiz(null);
-      }
-    } catch (err) {
-      console.error("Error fetching quiz:", err);
-    } finally {
-      setQuizLoading(false);
-    }
-  };
-
   // Handle participant search using the participation number
   const handleSearch = async (e) => {
     e.preventDefault();
@@ -78,47 +50,34 @@ function Home() {
     setQuiz(null);
 
     try {
-      const participantsRef = collection(db, "participants");
-      const q = query(
-        participantsRef,
-        where("participationNumber", "==", Number(participationNumber))
+      const response = await fetch(
+        "https://us-central1-ekquiz30-69c41.cloudfunctions.net/lookupParticipant",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ participationNumber }),
+        }
       );
-      const querySnapshot = await getDocs(q);
-
-      if (!querySnapshot.empty) {
-        const participantData = querySnapshot.docs[0].data();
-        setParticipant(participantData);
-        fetchPublishedQuiz();
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.error || "Error fetching participant");
       } else {
-        setError("Participant not found.");
+        setParticipant(data.participant);
+        setQuiz(data.quiz);
+        setQuizId(data.quizId);
+        setAlreadySubmitted(data.alreadySubmitted);
       }
     } catch (err) {
-      setError("Error fetching participant.");
       console.error(err);
+      setError("Error fetching participant.");
     } finally {
       setLoading(false);
     }
   };
 
-  const checkIfAlreadySubmitted = async (quizId) => {
-    if (!participant) return;
-    try {
-      const quizRef = doc(db, "quizzes", quizId);
-      const quizDoc = await getDoc(quizRef);
-      if (quizDoc.exists()) {
-        const responses = quizDoc.data().responses || [];
-        const hasSubmitted = responses.some(
-          (response) =>
-            response.participationNumber === participant.participationNumber
-        );
-        setAlreadySubmitted(hasSubmitted);
-      }
-    } catch (err) {
-      console.error("Error checking submission status:", err);
-    }
-  };
-
-  // Handle answer selection in the quiz
+  // Handle answer selection in the quiz remains the same
   const handleOptionSelect = (questionIndex, selectedOption) => {
     setSelectedAnswers((prev) => ({
       ...prev,
@@ -126,7 +85,7 @@ function Home() {
     }));
   };
 
-  // Handle quiz submission
+  // Handle quiz submission - now sends only the selected answers without "isCorrect"
   const handleSubmitQuiz = async () => {
     if (!quizId) {
       console.error("Quiz ID not found.");
@@ -135,40 +94,38 @@ function Home() {
 
     setSubmittingQuiz(true);
 
+    // Prepare the answers array without computing isCorrect here
     const answers = quiz.questions.map((question, index) => {
       const selectedOption = selectedAnswers[index] || { text: "No answer" };
-      const correctOption = question.options.find((opt) => opt.isCorrect)?.text;
       return {
         question: question.question,
         selectedAnswer: selectedOption.text,
-        isCorrect: selectedOption.text === correctOption,
       };
     });
 
-    const participantResponse = {
-      participantName: participant.name,
-      participationNumber: participant.participationNumber,
-      date: new Date().toISOString(),
-      answers,
-    };
-
     try {
-      const quizRef = doc(db, "quizzes", quizId);
-      const quizDoc = await getDoc(quizRef);
-      if (!quizDoc.exists()) {
-        console.error("Quiz document not found!");
-        return;
+      const response = await fetch(
+        "https://us-central1-ekquiz30-69c41.cloudfunctions.net/submitQuiz",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            quizId,
+            participant,
+            answers,
+          }),
+        }
+      );
+      const data = await response.json();
+      if (!response.ok) {
+        alert(data.error || "Error submitting quiz.");
+      } else {
+        setQuizSubmitted(true);
       }
-      const quizData = quizDoc.data();
-      if (!quizData.responses) {
-        await setDoc(quizRef, { responses: [] }, { merge: true });
-      }
-      await updateDoc(quizRef, {
-        responses: arrayUnion(participantResponse),
-      });
-      setQuizSubmitted(true);
     } catch (err) {
-      console.error("Error submitting quiz:", err);
+      console.error(err);
       alert("Error submitting quiz. Please try again.");
     } finally {
       setSubmittingQuiz(false);
@@ -191,6 +148,7 @@ function Home() {
       <Container size="1" py="9" px="5">
         <Flex direction="column" gap="7">
           <Header />
+
           <Flex direction="column" gap="5">
             {/* Show the participation number entry form if no participant is loaded */}
             {!participant && (
@@ -202,7 +160,14 @@ function Home() {
               />
             )}
 
-            {error && <Text color="red">{error}</Text>}
+            {error && (
+              <Callout.Root color="red" size="1">
+                <Callout.Icon>
+                  <InfoCircledIcon />
+                </Callout.Icon>
+                <Callout.Text>{error}</Callout.Text>
+              </Callout.Root>
+            )}
 
             {/* Once a participant is found, display details and quiz */}
             {participant && (

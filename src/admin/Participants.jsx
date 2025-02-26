@@ -12,6 +12,7 @@ import {
   IconButton,
   AlertDialog,
   Strong,
+  Skeleton,
 } from "@radix-ui/themes";
 import { TrashIcon } from "@heroicons/react/24/outline";
 
@@ -103,9 +104,9 @@ function Participants() {
       </Flex>
 
       {loading ? (
-        <Text>
-          <Spinner />
-        </Text>
+        <Skeleton width="100%" height="200px">
+          <Table.Root variant="surface"></Table.Root>
+        </Skeleton>
       ) : participants.length > 0 ? (
         <Table.Root variant="surface">
           <Table.Header>

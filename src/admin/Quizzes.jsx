@@ -16,6 +16,7 @@ import {
   Badge,
   Strong,
   IconButton,
+  Skeleton,
   Spinner,
   DropdownMenu,
   AlertDialog,
@@ -112,7 +113,17 @@ function Quizzes() {
       </Flex>
 
       {loading ? (
-        <Spinner />
+        <Flex direction="column" gap="2">
+          <Skeleton width="100%" height="80px">
+            <Card></Card>
+          </Skeleton>
+          <Skeleton width="100%" height="80px">
+            <Card></Card>
+          </Skeleton>
+          <Skeleton width="100%" height="80px">
+            <Card></Card>
+          </Skeleton>
+        </Flex>
       ) : quizzes.length > 0 ? (
         <Flex direction="column" gap="3">
           {quizzes.map((quiz) => (
