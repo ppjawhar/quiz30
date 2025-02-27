@@ -4,7 +4,7 @@ import { CheckCircleIcon } from "@heroicons/react/24/outline";
 function SuccessSubmission({ handleReset }) {
   return (
     <Flex gap="5" direction="column" align="center">
-      <CheckCircleIcon className="size-20 text-emerald-500" />
+      {/* <CheckCircleIcon className="size-20 text-emerald-500" /> */}
       <Text size="6" align="center" className="!font-sans">
         Your answer submitted successfully!
       </Text>

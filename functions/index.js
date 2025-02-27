@@ -116,12 +116,24 @@ exports.submitQuiz = functions.https.onRequest(async (req, res) => {
         return res.status(400).json({ error: "Quiz already submitted" });
       }
 
+      // Check if all questions have an answer submitted.
+      if (
+        answers.length !== quizData.questions.length ||
+        quizData.questions.some((question, index) => {
+          return !answers[index] || !answers[index].selectedAnswer;
+        })
+      ) {
+        return res
+          .status(400)
+          .json({ error: "All questions must be answered" });
+      }
+
       // Compute the answers with correctness on the server side
       const computedAnswers = quizData.questions.map((question, index) => {
         const correctOption = question.options.find(
           (opt) => opt.isCorrect
         )?.text;
-        const submittedAnswer = answers[index]?.selectedAnswer || "No answer";
+        const submittedAnswer = answers[index]?.selectedAnswer;
         return {
           question: question.question,
           selectedAnswer: submittedAnswer,
