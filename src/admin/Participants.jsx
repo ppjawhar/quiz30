@@ -1,6 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { collection, getDocs, deleteDoc, doc } from "firebase/firestore"; // Firestore methods
+import {
+  collection,
+  getDocs,
+  deleteDoc,
+  doc,
+  query,
+  orderBy,
+} from "firebase/firestore"; // Firestore methods
 import { db } from "../firebase"; // Import Firestore instance
 import {
   Flex,
@@ -66,7 +73,11 @@ function Participants() {
   useEffect(() => {
     const fetchParticipants = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "participants"));
+        const participationRef = collection(db, "participants");
+        // Order by the "name" field in ascending order (A-Z)
+        const q = query(participationRef, orderBy("name", "asc"));
+        const querySnapshot = await getDocs(q);
+
         const participantsData = querySnapshot.docs.map((doc) => ({
           id: doc.id, // Get document ID (useful for updates/deletions)
           ...doc.data(), // Spread the document data

@@ -6,6 +6,8 @@ import {
   updateDoc,
   deleteDoc,
   doc,
+  query,
+  orderBy,
 } from "firebase/firestore"; // Firestore methods
 import { db } from "../firebase"; // Import Firestore instance
 import {
@@ -41,7 +43,10 @@ function Quizzes() {
   useEffect(() => {
     const fetchQuizzes = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "quizzes"));
+        const quizzesRef = collection(db, "quizzes");
+        // Order by the "name" field in ascending order (A-Z)
+        const q = query(quizzesRef, orderBy("quizName", "asc"));
+        const querySnapshot = await getDocs(q);
         const quizData = querySnapshot.docs.map((doc) => ({
           id: doc.id, // Include document ID
           ...doc.data(),
