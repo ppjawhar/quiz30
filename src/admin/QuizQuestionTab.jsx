@@ -10,6 +10,7 @@ import {
   IconButton,
   Button,
   AlertDialog,
+  Switch,
 } from "@radix-ui/themes";
 import {
   PencilSquareIcon,
@@ -71,6 +72,15 @@ function QuizQuestionTab({
 
   return (
     <Flex py="4" direction="column" gap="3" width="100%">
+      <Flex pb="4">
+        <Text as="label" size="3">
+          <Flex gap="2">
+            Show answer
+            <Switch disabled defaultChecked />
+          </Flex>
+        </Text>
+      </Flex>
+
       {quiz.questions.map((q, qIndex) => (
         <Card key={qIndex} variant="classic" className="bg-gray-500/10 w-full">
           <Flex direction="column" gap="3">

@@ -110,7 +110,7 @@ exports.submitQuiz = functions.https.onRequest(async (req, res) => {
       const responses = quizData.responses || [];
       const alreadySubmitted = responses.some(
         (response) =>
-          response.participationNumber === participant.participationNumber
+          String(r.participationNumber) === String(participationNumber)
       );
       if (alreadySubmitted) {
         return res.status(400).json({ error: "Quiz already submitted" });
@@ -158,3 +158,207 @@ exports.submitQuiz = functions.https.onRequest(async (req, res) => {
     }
   });
 });
+
+exports.changeQuizStatus = functions.https.onCall(async (data, context) => {
+  // Expecting quizId and newStatus to be passed from the client.
+
+  console.log("Received data:", data); // This will log the data payload
+  const { quizId, newStatus } = data.data;
+
+  if (!quizId || !newStatus) {
+    throw new functions.https.HttpsError(
+      "invalid-argument",
+      "quizId and newStatus must be provided."
+    );
+  }
+
+  const quizzesRef = admin.firestore().collection("quizzes");
+
+  if (newStatus === "Published") {
+    // Query for any quiz that is published (excluding the one being updated).
+    const publishedQuerySnapshot = await quizzesRef
+      .where("status", "==", "Published")
+      .get();
+
+    let conflictQuiz = null;
+    publishedQuerySnapshot.forEach((doc) => {
+      if (doc.id !== quizId) {
+        conflictQuiz = doc.data();
+      }
+    });
+
+    if (conflictQuiz) {
+      throw new functions.https.HttpsError(
+        "failed-precondition",
+        `Only one quiz can be published at a time. Unpublish the quiz "${conflictQuiz.quizName}" first.`
+      );
+    }
+  }
+
+  // Update the quiz document with the new status.
+  try {
+    await quizzesRef.doc(quizId).update({ status: newStatus });
+    return { success: true };
+  } catch (error) {
+    throw new functions.https.HttpsError("unknown", error.message, error);
+  }
+});
+
+exports.getLeaderboardData = functions.https.onCall(async (data, context) => {
+  try {
+    const db = admin.firestore();
+    // Fetch participants and quizzes concurrently.
+    const [participantsSnapshot, quizzesSnapshot] = await Promise.all([
+      db.collection("participants").get(),
+      db.collection("quizzes").get(),
+    ]);
+
+    const participantsData = participantsSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    const quizzesData = quizzesSnapshot.docs.map((doc) => doc.data());
+
+    // Compute stats for each participant based on quiz responses,
+    // only considering quizzes with includeLeaderboard === true.
+    const participantStats = new Map();
+
+    quizzesData.forEach((quiz) => {
+      if (!quiz.includeLeaderboard) return; // Only include quizzes for leaderboard
+      if (!quiz.responses) return;
+
+      quiz.responses.forEach((response) => {
+        const { participationNumber, answers } = response;
+        if (!participantStats.has(participationNumber)) {
+          participantStats.set(participationNumber, {
+            quizAttended: 0,
+            correctAnswers: 0,
+          });
+        }
+        const stats = participantStats.get(participationNumber);
+        stats.quizAttended += 1;
+        stats.correctAnswers += answers.filter(
+          (answer) => answer.isCorrect
+        ).length;
+      });
+    });
+
+    // Merge statistics with participant details.
+    const leaderboardData = participantsData.map((participant) => {
+      const { participationNumber, name } = participant;
+      const stats = participantStats.get(participationNumber) || {
+        quizAttended: 0,
+        correctAnswers: 0,
+      };
+      return {
+        participationNumber,
+        name,
+        quizAttended: stats.quizAttended,
+        correctAnswers: stats.correctAnswers,
+      };
+    });
+
+    // Sort leaderboard by total correct answers in descending order.
+    const sortedLeaderboard = leaderboardData.sort(
+      (a, b) => b.correctAnswers - a.correctAnswers
+    );
+
+    return sortedLeaderboard;
+  } catch (error) {
+    console.error("Error fetching leaderboard data:", error);
+    throw new functions.https.HttpsError(
+      "internal",
+      "Unable to fetch leaderboard data"
+    );
+  }
+});
+
+exports.getParticipantLeaderboardAndSubmissions = functions.https.onCall(
+  async (data, context) => {
+    try {
+      const db = admin.firestore();
+      const { participationNumber } = data.data;
+      if (!participationNumber) {
+        throw new functions.https.HttpsError(
+          "invalid-argument",
+          "Participation number is required."
+        );
+      }
+
+      // Query quizzes that should publish answers
+      const quizzesSnapshot = await db
+        .collection("quizzes")
+        .where("publishAnswers", "==", true)
+        .get();
+      // Include quiz id along with data
+      const quizzesData = quizzesSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      let totalPoints = 0;
+      const submissions = [];
+
+      quizzesData.forEach((quiz) => {
+        // Skip if no responses
+        if (!quiz.responses) return;
+        // Find the response from the participant
+        const response = quiz.responses.find(
+          (r) => String(r.participationNumber) === String(participationNumber)
+        );
+        if (!response) return;
+
+        const answerDetails = [];
+        let correctCount = 0;
+
+        // Process each answer from the response.
+        // Assume response.answers is an array of objects:
+        // { question: "Question text", selectedAnswer: "User's answer text" }
+        response.answers.forEach((answer) => {
+          // Match the answer to the quiz question by question text.
+          const quizQuestion = quiz.questions.find(
+            (q) => q.question === answer.question
+          );
+          if (!quizQuestion) return; // Skip if the question is not found.
+          const correctOption = quizQuestion.options.find(
+            (option) => option.isCorrect
+          );
+          const isAnswerCorrect =
+            correctOption && answer.selectedAnswer === correctOption.text;
+          if (isAnswerCorrect) {
+            correctCount++;
+            answerDetails.push({
+              question: quizQuestion.question,
+              submittedAnswer: answer.selectedAnswer,
+            });
+          } else {
+            answerDetails.push({
+              question: quizQuestion.question,
+              submittedAnswer: answer.selectedAnswer,
+              correctAnswer: correctOption
+                ? correctOption.text
+                : "Not available",
+            });
+          }
+        });
+
+        totalPoints += correctCount;
+        submissions.push({
+          quizId: quiz.id,
+          quizName: quiz.quizName,
+          answers: answerDetails,
+          correctCount,
+        });
+      });
+
+      return { quizzesData, totalPoints, submissions };
+    } catch (error) {
+      console.error(
+        "Error fetching participant leaderboard and submissions:",
+        error
+      );
+      throw new functions.https.HttpsError("internal", "Unable to fetch data");
+    }
+  }
+);

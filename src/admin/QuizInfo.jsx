@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { doc, getDoc, updateDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../firebase"; // Import Firestore instance
+import { getFunctions, httpsCallable } from "firebase/functions"; // Firebase Functions
 import {
   Flex,
   Box,
@@ -21,14 +22,19 @@ import {
   Radio,
   Spinner,
   Skeleton,
+  Callout,
+  Switch,
 } from "@radix-ui/themes";
 import {
   ArrowLeftIcon,
   TrashIcon,
   XMarkIcon,
+  EllipsisHorizontalIcon,
+  ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
 import QuizQustionTab from "./QuizQuestionTab";
 import QuizAttemptsTab from "./QuizAttemptsTab";
+import QuizSettingsTab from "./QuizSettingsTab";
 
 function QuizInfo() {
   const { id } = useParams();
@@ -38,6 +44,8 @@ function QuizInfo() {
   const [newQuizName, setNewQuizName] = useState("");
   const [newDescription, setNewDescription] = useState("");
   const [editQuestion, setEditQuestion] = useState(null);
+  const [publishAlertOpen, setPublishAlertOpen] = useState(false);
+  const [publishErrorMessage, setPublishErrorMessage] = useState("");
 
   // Fetch Quiz Details
   useEffect(() => {
@@ -46,9 +54,18 @@ function QuizInfo() {
         const docRef = doc(db, "quizzes", id);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
-          setQuiz({ id: docSnap.id, ...docSnap.data() });
-          setNewQuizName(docSnap.data().quizName);
-          setNewDescription(docSnap.data().description);
+          const data = docSnap.data();
+          // Load new fields with defaults if they don't exist
+          const quizData = {
+            id: docSnap.id,
+            ...data,
+            shuffleOptions: data.shuffleOptions ?? false,
+            includeLeaderboard: data.includeLeaderboard ?? false,
+            publishAnswers: data.publishAnswers ?? false,
+          };
+          setQuiz(quizData);
+          setNewQuizName(data.quizName);
+          setNewDescription(data.description);
         } else {
           console.error("No such quiz!");
         }
@@ -75,15 +92,25 @@ function QuizInfo() {
     }
   };
 
-  // Change Quiz Status (Publish/Unpublish)
-  const handleStatusChange = async () => {
-    const newStatus =
-      quiz.status === "Unpublished" ? "Published" : "Unpublished";
+  // Update quiz status using the cloud function
+  const handleStatusChange = async (quizId, newStatus) => {
+    const functions = getFunctions();
+    const changeQuizStatus = httpsCallable(functions, "changeQuizStatus");
+
     try {
-      await updateDoc(doc(db, "quizzes", id), { status: newStatus });
-      setQuiz({ ...quiz, status: newStatus });
+      const result = await changeQuizStatus({ quizId, newStatus });
+
+      if (result.data.success) {
+        // Update local state after a successful status update.
+        setQuiz((prevQuiz) => ({
+          ...prevQuiz,
+          status: newStatus,
+        }));
+      }
     } catch (error) {
-      console.error("Error updating status:", error);
+      console.error("Error updating quiz status:", error);
+      setPublishErrorMessage(error.message);
+      setPublishAlertOpen(true);
     }
   };
 
@@ -135,7 +162,35 @@ function QuizInfo() {
     }
   };
 
-  // //Skelton loading..
+  // Handlers for new quiz settings fields
+  const handleShuffleOptionsChange = async (checked) => {
+    try {
+      await updateDoc(doc(db, "quizzes", id), { shuffleOptions: checked });
+      setQuiz((prevQuiz) => ({ ...prevQuiz, shuffleOptions: checked }));
+    } catch (error) {
+      console.error("Error updating shuffle options:", error);
+    }
+  };
+
+  const handleLeaderboardChange = async (checked) => {
+    try {
+      await updateDoc(doc(db, "quizzes", id), { includeLeaderboard: checked });
+      setQuiz((prevQuiz) => ({ ...prevQuiz, includeLeaderboard: checked }));
+    } catch (error) {
+      console.error("Error updating leaderboard calculation:", error);
+    }
+  };
+
+  const handlePublishAnswersChange = async (checked) => {
+    try {
+      await updateDoc(doc(db, "quizzes", id), { publishAnswers: checked });
+      setQuiz((prevQuiz) => ({ ...prevQuiz, publishAnswers: checked }));
+    } catch (error) {
+      console.error("Error updating publish answers and points:", error);
+    }
+  };
+
+  // Skeleton loading..
   if (loading)
     return (
       <Flex direction="column" gap="7" flexGrow="1">
@@ -291,13 +346,18 @@ function QuizInfo() {
                 </Dialog.Content>
               </Dialog.Root>
 
-              {/* <Button
+              <Button
                 variant="soft"
                 color={quiz.status === "Published" ? "red" : "grass"}
-                onClick={handleStatusChange}
+                onClick={() =>
+                  handleStatusChange(
+                    quiz.id,
+                    quiz.status === "Published" ? "Unpublished" : "Published"
+                  )
+                }
               >
                 {quiz.status === "Published" ? "Unpublish" : "Publish"}
-              </Button> */}
+              </Button>
             </Flex>
           </Flex>
           <Flex gap="2">
@@ -343,6 +403,7 @@ function QuizInfo() {
         <Tabs.List>
           <Tabs.Trigger value="attempts">Attempts</Tabs.Trigger>
           <Tabs.Trigger value="questions">Questions</Tabs.Trigger>
+          <Tabs.Trigger value="settings">Quiz Settings</Tabs.Trigger>
         </Tabs.List>
 
         <Box pt="3">
@@ -359,8 +420,107 @@ function QuizInfo() {
               handleAddQuestion={handleAddQuestion}
             />
           </Tabs.Content>
+          <Tabs.Content value="settings">
+            <Flex py="4" direction="column" gap="3" width="100%">
+              <DataList.Root size="3">
+                <DataList.Item align="center" className="align-top">
+                  <DataList.Label minWidth="88px">
+                    <Flex direction="column">
+                      <Text>Shuffle Options</Text>
+                      <Text size="2" className="opacity-70">
+                        Different options order for each user.
+                      </Text>
+                    </Flex>
+                  </DataList.Label>
+                  <DataList.Value>
+                    <Switch
+                      checked={quiz.shuffleOptions}
+                      onCheckedChange={handleShuffleOptionsChange}
+                    />
+                  </DataList.Value>
+                </DataList.Item>
+                <DataList.Item align="center">
+                  <DataList.Label minWidth="88px">
+                    <Flex direction="column">
+                      <Text>Include to leaderboard calculation</Text>
+                      <Text size="2" className="opacity-70">
+                        Add this quiz's points to leaderboard calculation.
+                      </Text>
+                    </Flex>
+                  </DataList.Label>
+                  <DataList.Value>
+                    <Switch
+                      checked={quiz.includeLeaderboard}
+                      onCheckedChange={handleLeaderboardChange}
+                    />
+                  </DataList.Value>
+                </DataList.Item>
+                <DataList.Item align="center">
+                  <DataList.Label minWidth="88px">
+                    <Flex direction="column">
+                      <Text>Publish Answer and Point</Text>
+                      <Text size="2" className="opacity-70">
+                        Publish correct answer to participant and the points
+                        they earned.
+                      </Text>
+                    </Flex>
+                  </DataList.Label>
+                  <DataList.Value>
+                    <Switch
+                      checked={quiz.publishAnswers}
+                      onCheckedChange={handlePublishAnswersChange}
+                    />
+                  </DataList.Value>
+                </DataList.Item>
+                <DataList.Item align="center">
+                  <DataList.Label minWidth="88px">
+                    <Flex direction="column">
+                      <Text>Auto Schedule</Text>
+                      <Text size="2" className="opacity-70">
+                        Publish and unpublish with auto schedule.
+                      </Text>
+                    </Flex>
+                  </DataList.Label>
+                  <DataList.Value>
+                    <Switch disabled />
+                  </DataList.Value>
+                </DataList.Item>
+              </DataList.Root>
+            </Flex>
+          </Tabs.Content>
         </Box>
       </Tabs.Root>
+
+      {/* AlertDialog for publish error */}
+      <AlertDialog.Root
+        open={publishAlertOpen}
+        onOpenChange={(open) => {
+          if (!open) setPublishAlertOpen(false);
+        }}
+      >
+        <AlertDialog.Content maxWidth="450px">
+          <AlertDialog.Title>Publish Error</AlertDialog.Title>
+          <AlertDialog.Description size="2">
+            <Callout.Root color="red">
+              <Callout.Icon>
+                <ExclamationCircleIcon className="size-5" />
+              </Callout.Icon>
+              <Callout.Text>{publishErrorMessage}</Callout.Text>
+            </Callout.Root>
+          </AlertDialog.Description>
+          <Flex gap="3" mt="4" justify="end">
+            <AlertDialog.Action>
+              <Button
+                variant="soft"
+                color="gray"
+                onClick={() => setPublishAlertOpen(false)}
+              >
+                OK
+              </Button>
+            </AlertDialog.Action>
+          </Flex>
+        </AlertDialog.Content>
+      </AlertDialog.Root>
     </Flex>
   );
 }

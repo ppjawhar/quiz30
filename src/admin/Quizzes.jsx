@@ -3,13 +3,13 @@ import { useNavigate } from "react-router-dom";
 import {
   collection,
   getDocs,
-  updateDoc,
   deleteDoc,
   doc,
   query,
   orderBy,
 } from "firebase/firestore"; // Firestore methods
 import { db } from "../firebase"; // Import Firestore instance
+import { getFunctions, httpsCallable } from "firebase/functions"; // Firebase Functions
 import {
   Flex,
   Text,
@@ -19,7 +19,6 @@ import {
   Strong,
   IconButton,
   Skeleton,
-  Spinner,
   DropdownMenu,
   AlertDialog,
   Callout,
@@ -44,7 +43,7 @@ function Quizzes() {
     const fetchQuizzes = async () => {
       try {
         const quizzesRef = collection(db, "quizzes");
-        // Order by the "name" field in ascending order (A-Z)
+        // Order by the "quizName" field in ascending order (A-Z)
         const q = query(quizzesRef, orderBy("quizName", "asc"));
         const querySnapshot = await getDocs(q);
         const quizData = querySnapshot.docs.map((doc) => ({
@@ -62,35 +61,27 @@ function Quizzes() {
     fetchQuizzes();
   }, []);
 
-  // Update quiz status
+  // Update quiz status using the cloud function
   const handleStatusChange = async (quizId, newStatus) => {
+    const functions = getFunctions();
+    const changeQuizStatus = httpsCallable(functions, "changeQuizStatus");
+
     try {
-      if (newStatus === "Published") {
-        // Check if there's already a published quiz
-        const alreadyPublished = quizzes.find(
-          (quiz) => quiz.status === "Published"
+      const result = await changeQuizStatus({ quizId, newStatus });
+
+      if (result.data.success) {
+        // Update local state after a successful status update.
+        setQuizzes((prevQuizzes) =>
+          prevQuizzes.map((quiz) =>
+            quiz.id === quizId ? { ...quiz, status: newStatus } : quiz
+          )
         );
-
-        if (alreadyPublished) {
-          setPublishErrorMessage(
-            `Only one quiz can be published at a time. Unpublish the quiz "${alreadyPublished.quizName}" first.`
-          );
-          setPublishAlertOpen(true);
-          return;
-        }
       }
-
-      // Update Firestore document
-      await updateDoc(doc(db, "quizzes", quizId), { status: newStatus });
-
-      // Update state
-      setQuizzes((prevQuizzes) =>
-        prevQuizzes.map((quiz) =>
-          quiz.id === quizId ? { ...quiz, status: newStatus } : quiz
-        )
-      );
     } catch (error) {
       console.error("Error updating quiz status:", error);
+      // Display the error message returned by the cloud function.
+      setPublishErrorMessage(error.message);
+      setPublishAlertOpen(true);
     }
   };
 

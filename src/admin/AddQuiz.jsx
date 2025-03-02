@@ -152,6 +152,10 @@ function AddQuiz() {
         numberOfQuestions: questions.length,
         status: "Unpublished", // Default status
         numberOfAttempts: 0, // Default value
+        // New fields added with default values:
+        shuffleOptions: true,
+        includeLeaderboard: true,
+        publishAnswers: false,
       });
       navigate("/quizzes");
     } catch (err) {

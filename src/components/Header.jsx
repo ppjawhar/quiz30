@@ -1,9 +1,9 @@
 import { useContext, useState } from "react";
 import { Flex, Text, IconButton } from "@radix-ui/themes";
-import { SunIcon, MoonIcon } from "@radix-ui/react-icons";
+import { SunIcon, MoonIcon, HomeIcon } from "@radix-ui/react-icons";
 import ThemeContext from "../ThemeContext";
 
-function Header() {
+function Header({ handleReset }) {
   const { appearance, toggleAppearance } = useContext(ThemeContext);
 
   return (
@@ -18,14 +18,24 @@ function Header() {
           </Text>
         </Flex>
 
-        <IconButton
-          variant="soft"
-          color="gray"
-          size="3"
-          onClick={toggleAppearance}
-        >
-          {appearance === "dark" ? <SunIcon /> : <MoonIcon />}
-        </IconButton>
+        <Flex gap="3">
+          <IconButton
+            variant="soft"
+            color="gray"
+            size="3"
+            onClick={toggleAppearance}
+          >
+            {appearance === "dark" ? <SunIcon /> : <MoonIcon />}
+          </IconButton>
+          <IconButton
+            variant="soft"
+            color="gray"
+            size="3"
+            onClick={handleReset}
+          >
+            <HomeIcon />
+          </IconButton>
+        </Flex>
       </Flex>
     </>
   );

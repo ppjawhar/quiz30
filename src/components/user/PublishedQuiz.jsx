@@ -33,7 +33,9 @@ function PublishedQuiz({
 
   // Compute shuffled options for each question only once when the quiz loads.
   const shuffledOptionsByQuestion = useMemo(() => {
-    return quiz.questions.map((question) => shuffleArray(question.options));
+    return quiz.questions.map((question) =>
+      quiz.shuffleOptions ? shuffleArray(question.options) : question.options
+    );
   }, [quiz]);
 
   // Check if each question has a selected answer
@@ -61,37 +63,24 @@ function PublishedQuiz({
               <Text size="6" mb="5">
                 {index + 1}. {question.question}
               </Text>
-              {alreadySubmitted ? (
-                <RadioCards.Root columns="1">
-                  {shuffledOptions.map((option, optionIndex) => (
-                    <RadioCards.Item key={optionIndex} value={option} disabled>
-                      <Flex direction="row" width="100%" gap="2" align="center">
-                        <Text size="4" weight="bold">
-                          {String.fromCharCode(65 + optionIndex)}.
-                        </Text>
-                        <Text size="4">{option.text}</Text>
-                      </Flex>
-                    </RadioCards.Item>
-                  ))}
-                </RadioCards.Root>
-              ) : (
-                <RadioCards.Root columns="1">
-                  {shuffledOptions.map((option, optionIndex) => (
-                    <RadioCards.Item
-                      key={optionIndex}
-                      value={option}
-                      onClick={() => handleOptionSelect(index, option)}
-                    >
-                      <Flex direction="row" width="100%" gap="2" align="center">
-                        <Text size="4" weight="bold">
-                          {String.fromCharCode(65 + optionIndex)}.
-                        </Text>
-                        <Text size="4">{option.text}</Text>
-                      </Flex>
-                    </RadioCards.Item>
-                  ))}
-                </RadioCards.Root>
-              )}
+
+              <RadioCards.Root columns="1">
+                {shuffledOptions.map((option, optionIndex) => (
+                  <RadioCards.Item
+                    key={optionIndex}
+                    value={option}
+                    onClick={() => handleOptionSelect(index, option)}
+                    disabled={alreadySubmitted}
+                  >
+                    <Flex direction="row" width="100%" gap="2" align="center">
+                      <Text size="4" weight="bold">
+                        {String.fromCharCode(65 + optionIndex)}.
+                      </Text>
+                      <Text size="4">{option.text}</Text>
+                    </Flex>
+                  </RadioCards.Item>
+                ))}
+              </RadioCards.Root>
             </Flex>
           );
         })}

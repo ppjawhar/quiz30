@@ -71,6 +71,9 @@ function ParticipantDetails({ participant, handleReset }) {
           </Text>
           <Text size="4">{participant.phone}</Text>
         </Flex>
+        <Button variant="soft" mt="4" onClick={handleReset}>
+          Play as another participant
+        </Button>
       </Flex>
     </Card>
   );

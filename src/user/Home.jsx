@@ -1,32 +1,33 @@
 import { useState, useEffect } from "react";
 import {
-  collection,
-  getDocs,
-  setDoc,
-  getDoc,
-  query,
-  where,
-  doc,
-  updateDoc,
-  arrayUnion,
-} from "firebase/firestore";
-import { db } from "../firebase";
-import {
   Flex,
   Box,
   Container,
   Button,
   Text,
   Separator,
+  Tabs,
   Callout,
+  SegmentedControl,
 } from "@radix-ui/themes";
 import { InfoCircledIcon } from "@radix-ui/react-icons";
+import { getFunctions, httpsCallable } from "firebase/functions";
 
 import Header from "../components/Header";
 import EnterParticipationNumber from "../components/user/EnterParticipationNumber";
 import ParticipantDetails from "../components/user/ParticipationDetails";
 import PublishedQuiz from "../components/user/PublishedQuiz";
 import SuccessSubmission from "../components/user/SuccessSubmission";
+
+import {
+  collection,
+  getDocs,
+  deleteDoc,
+  doc,
+  query,
+  orderBy,
+} from "firebase/firestore"; // Firestore methods
+import { db } from "../firebase"; // Import Firestore instance
 
 function Home() {
   const [participationNumber, setParticipationNumber] = useState("");
@@ -40,6 +41,10 @@ function Home() {
   const [quizSubmittedSuccess, setQuizSubmitted] = useState(false);
   const [submittingQuiz, setSubmittingQuiz] = useState(false);
   const [alreadySubmitted, setAlreadySubmitted] = useState(false);
+  // New state for segmented control and points data
+  const [selectedSegment, setSelectedSegment] = useState("quiz");
+  const [pointsData, setPointsData] = useState(null);
+  const [pointsLoading, setPointsLoading] = useState(false);
 
   // Handle participant search using the participation number
   const handleSearch = async (e) => {
@@ -48,6 +53,7 @@ function Home() {
     setError("");
     setParticipant(null);
     setQuiz(null);
+    setPointsData(null); // reset points data
 
     try {
       const response = await fetch(
@@ -132,6 +138,87 @@ function Home() {
     }
   };
 
+  // Fetch points and submission details when user selects "My Points"
+  useEffect(() => {
+    const fetchPointsData = async () => {
+      if (participant && selectedSegment === "points") {
+        setPointsLoading(true);
+        try {
+          const functions = getFunctions();
+          const getPointsData = httpsCallable(
+            functions,
+            "getParticipantLeaderboardAndSubmissions"
+          );
+          const result = await getPointsData({ participationNumber });
+
+          setPointsData(result.data);
+          console.log(result.data);
+
+          let totalPoints = 0;
+          const submissions = [];
+
+          result.data.quizzesData.forEach((quiz) => {
+            // Skip if no responses
+            if (!quiz.responses) return;
+            // Find the response from the participant
+            const response = quiz.responses.find(
+              (r) => r.participationNumber === participationNumber
+            );
+            if (!response) return;
+
+            const answerDetails = [];
+            let correctCount = 0;
+
+            // Process each answer from the response.
+            // Assume response.answers is an array of objects:
+            // { question: "Question text", selectedAnswer: "User's answer text" }
+            response.answers.forEach((answer) => {
+              // Match the answer to the quiz question by question text.
+              const quizQuestion = quiz.questions.find(
+                (q) => q.question === answer.question
+              );
+              if (!quizQuestion) return; // Skip if the question is not found.
+              const correctOption = quizQuestion.options.find(
+                (option) => option.isCorrect
+              );
+              const isAnswerCorrect =
+                correctOption && answer.selectedAnswer === correctOption.text;
+              if (isAnswerCorrect) {
+                correctCount++;
+                answerDetails.push({
+                  question: quizQuestion.question,
+                  submittedAnswer: answer.selectedAnswer,
+                });
+              } else {
+                answerDetails.push({
+                  question: quizQuestion.question,
+                  submittedAnswer: answer.selectedAnswer,
+                  correctAnswer: correctOption
+                    ? correctOption.text
+                    : "Not available",
+                });
+              }
+            });
+
+            totalPoints += correctCount;
+            submissions.push({
+              quizId: quiz.id,
+              quizName: quiz.quizName,
+              answers: answerDetails,
+              correctCount,
+            });
+          });
+        } catch (error) {
+          console.error("Error fetching points data:", error);
+        } finally {
+          setPointsLoading(false);
+        }
+      }
+    };
+
+    fetchPointsData();
+  }, [participant, selectedSegment, participationNumber]);
+
   // Reset the form and state to start over
   const handleReset = () => {
     setParticipationNumber("");
@@ -141,13 +228,14 @@ function Home() {
     setSelectedAnswers({});
     setQuizSubmitted(false);
     setError("");
+    setPointsData(null);
   };
 
   return (
     <Box>
       <Container size="1" py="9" px="5">
         <Flex direction="column" gap="7">
-          <Header />
+          <Header handleReset={handleReset} />
 
           <Flex direction="column" gap="5">
             {/* Show the participation number entry form if no participant is loaded */}
@@ -169,34 +257,187 @@ function Home() {
               </Callout.Root>
             )}
 
-            {/* Once a participant is found, display details and quiz */}
+            {/* Once a participant is found, display details and quiz/points */}
             {participant && (
               <Flex direction="column" gap="5">
-                <ParticipantDetails
-                  participant={participant}
-                  handleReset={handleReset}
-                />
-                <Button variant="soft" onClick={handleReset}>
-                  Play as another participant
-                </Button>
-                <Separator size="4" />
-
-                {/* Show the quiz if not yet submitted */}
-                {!quizSubmittedSuccess && (
-                  <PublishedQuiz
-                    quiz={quiz}
-                    quizLoading={quizLoading}
-                    selectedAnswers={selectedAnswers}
-                    handleOptionSelect={handleOptionSelect}
-                    handleSubmitQuiz={handleSubmitQuiz}
-                    submittingQuiz={submittingQuiz}
-                    alreadySubmitted={alreadySubmitted}
+                <Flex direction="column" gap="3">
+                  <ParticipantDetails
+                    participant={participant}
+                    handleReset={handleReset}
                   />
+                </Flex>
+
+                <SegmentedControl.Root
+                  size="3"
+                  value={selectedSegment}
+                  onValueChange={setSelectedSegment}
+                  variant="surface"
+                >
+                  <SegmentedControl.Item value="quiz">
+                    Today's Quiz
+                  </SegmentedControl.Item>
+                  <SegmentedControl.Item value="points">
+                    My Points
+                  </SegmentedControl.Item>
+                </SegmentedControl.Root>
+
+                {selectedSegment === "quiz" && (
+                  <Flex>
+                    {/* Show the quiz */}
+                    {!quizSubmittedSuccess ? (
+                      <PublishedQuiz
+                        quiz={quiz}
+                        quizLoading={quizLoading}
+                        selectedAnswers={selectedAnswers}
+                        handleOptionSelect={handleOptionSelect}
+                        handleSubmitQuiz={handleSubmitQuiz}
+                        submittingQuiz={submittingQuiz}
+                        alreadySubmitted={alreadySubmitted}
+                      />
+                    ) : (
+                      <SuccessSubmission handleReset={handleReset} />
+                    )}
+                  </Flex>
                 )}
 
-                {/* Show success message after quiz submission */}
-                {quizSubmittedSuccess && (
-                  <SuccessSubmission handleReset={handleReset} />
+                {selectedSegment === "points" && (
+                  <Flex direction="column" gap="4">
+                    {pointsLoading ? (
+                      <Text>Loading points data...</Text>
+                    ) : pointsData ? (
+                      <>
+                        <Callout.Root variant="surface" color="blue" size="2">
+                          <Callout.Text>
+                            Your Total Points:{" "}
+                            <strong>{pointsData.totalPoints}</strong>
+                          </Callout.Text>
+                        </Callout.Root>
+                        <Text size="5" mt="6">
+                          Your Answers:
+                        </Text>
+                        {pointsData.submissions.map((submission) => (
+                          <Flex
+                            direction="column"
+                            gap="3"
+                            key={submission.quizId}
+                          >
+                            <Text size="4" weight="bold">
+                              {submission.quizName}:
+                            </Text>
+                            {submission.answers.map((ans, idx) => (
+                              <Flex key={idx} direction="column" gap="1">
+                                <Text size="3" weight="bold">
+                                  {ans.question}
+                                </Text>
+                                {ans.correctAnswer ? (
+                                  <>
+                                    <Flex>
+                                      <Text
+                                        size="2"
+                                        style={{
+                                          background: "var(--red-a3)",
+                                          border: "1px dashed var(--red-a7)",
+                                          borderRadius: "3px 0px 0px 3px",
+                                          padding: "7px",
+                                          width: "30%",
+                                        }}
+                                      >
+                                        Your Answer:
+                                      </Text>
+                                      <Text
+                                        size="2"
+                                        style={{
+                                          background: "var(--red-a3)",
+                                          border: "1px dashed var(--red-a7)",
+                                          borderRadius: "0px 3px 3px 0px",
+                                          padding: "7px",
+                                          width: "70%",
+                                        }}
+                                      >
+                                        {ans.submittedAnswer}
+                                      </Text>
+                                    </Flex>
+                                    <Flex>
+                                      <Text
+                                        size="2"
+                                        style={{
+                                          background: "var(--green-a3)",
+                                          border: "1px dashed var(--green-a7)",
+                                          borderRadius: "3px 0px 0px 3px",
+                                          padding: "7px",
+                                          width: "30%",
+                                        }}
+                                      >
+                                        Correct Answer:
+                                      </Text>
+                                      <Text
+                                        size="2"
+                                        style={{
+                                          background: "var(--green-a3)",
+                                          border: "1px dashed var(--green-a7)",
+                                          borderRadius: "0px 3px 3px 0px",
+                                          padding: "7px",
+                                          width: "70%",
+                                        }}
+                                      >
+                                        {ans.correctAnswer}
+                                      </Text>
+                                    </Flex>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Flex>
+                                      <Text
+                                        size="2"
+                                        style={{
+                                          background: "var(--green-a3)",
+                                          border: "1px dashed var(--green-a7)",
+                                          borderRadius: "3px 0px 0px 3px",
+                                          padding: "7px",
+                                          width: "30%",
+                                        }}
+                                      >
+                                        Your Answer:
+                                      </Text>
+                                      <Text
+                                        size="2"
+                                        style={{
+                                          background: "var(--green-a3)",
+                                          border: "1px dashed var(--green-a7)",
+                                          borderRadius: "0px 3px 3px 0px",
+                                          padding: "7px",
+                                          width: "70%",
+                                        }}
+                                      >
+                                        {ans.submittedAnswer}
+                                      </Text>
+                                    </Flex>
+                                    <Text
+                                      size="2"
+                                      style={{
+                                        background: "var(--gray-a3)",
+                                        borderColor: "var(--gray-a7)",
+                                        border: "1px solid var(--gray-a7)",
+                                        borderBottom:
+                                          "1px solid var(--gray-a7)",
+                                        borderRadius: "3px",
+                                        padding: "7px",
+                                        width: "100%",
+                                      }}
+                                    >
+                                      Your answer is correct!
+                                    </Text>
+                                  </>
+                                )}
+                              </Flex>
+                            ))}
+                          </Flex>
+                        ))}
+                      </>
+                    ) : (
+                      <Text>No submission data found.</Text>
+                    )}
+                  </Flex>
                 )}
               </Flex>
             )}
