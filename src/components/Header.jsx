@@ -1,9 +1,11 @@
 import { useContext, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Flex, Text, IconButton } from "@radix-ui/themes";
 import { SunIcon, MoonIcon, HomeIcon } from "@radix-ui/react-icons";
 import ThemeContext from "../ThemeContext";
 
 function Header({ handleReset }) {
+  const navigate = useNavigate();
   const { appearance, toggleAppearance } = useContext(ThemeContext);
 
   return (
@@ -31,7 +33,9 @@ function Header({ handleReset }) {
             variant="soft"
             color="gray"
             size="3"
-            onClick={handleReset}
+            onClick={() => {
+              handleReset();
+            }}
           >
             <HomeIcon />
           </IconButton>

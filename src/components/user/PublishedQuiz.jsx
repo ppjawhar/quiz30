@@ -53,11 +53,11 @@ function PublishedQuiz({
           {quiz.description}
         </Text>
       </Flex>
-
       <Flex gap="5" direction="column">
         {quiz.questions.map((question, index) => {
           // Use the pre-computed shuffled options for this question
           const shuffledOptions = shuffledOptionsByQuestion[index];
+
           return (
             <Flex key={index} direction="column" gap="3">
               <Text size="6" mb="5">

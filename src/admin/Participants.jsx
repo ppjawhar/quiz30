@@ -122,6 +122,7 @@ function Participants() {
         <Table.Root variant="surface">
           <Table.Header>
             <Table.Row>
+              <Table.ColumnHeaderCell>No.</Table.ColumnHeaderCell>
               <Table.ColumnHeaderCell>Name</Table.ColumnHeaderCell>
               <Table.ColumnHeaderCell>Relation Type</Table.ColumnHeaderCell>
               <Table.ColumnHeaderCell>Relative Name</Table.ColumnHeaderCell>
@@ -132,8 +133,11 @@ function Participants() {
           </Table.Header>
 
           <Table.Body>
-            {participants.map((participant) => (
+            {participants.map((participant, index) => (
               <Table.Row key={participant.id}>
+                <Table.RowHeaderCell>
+                  {index + 1}
+                </Table.RowHeaderCell>
                 <Table.RowHeaderCell>
                   <Strong>{participant.name}</Strong>
                 </Table.RowHeaderCell>

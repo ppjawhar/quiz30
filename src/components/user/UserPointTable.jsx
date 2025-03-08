@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Flex, Text, Table, Badge, Strong, Skeleton } from "@radix-ui/themes";
 import { getFunctions, httpsCallable } from "firebase/functions";
 
-function PointTable() {
+function UserPointTable() {
   const [participants, setParticipants] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -38,7 +38,6 @@ function PointTable() {
           <Table.Header>
             <Table.Row>
               <Table.ColumnHeaderCell>No.</Table.ColumnHeaderCell>
-              <Table.ColumnHeaderCell>Participation No.</Table.ColumnHeaderCell>
               <Table.ColumnHeaderCell>Name</Table.ColumnHeaderCell>
               <Table.ColumnHeaderCell>Quiz Attended</Table.ColumnHeaderCell>
               <Table.ColumnHeaderCell align="right">
@@ -50,11 +49,7 @@ function PointTable() {
             {participants.map((participant, index) => (
               <Table.Row key={participant.participationNumber}>
                 <Table.RowHeaderCell>{index + 1}</Table.RowHeaderCell>
-                <Table.RowHeaderCell>
-                  <Badge variant="outline">
-                    {participant.participationNumber}
-                  </Badge>
-                </Table.RowHeaderCell>
+
                 <Table.Cell>{participant.name}</Table.Cell>
                 <Table.Cell>{participant.quizAttended}</Table.Cell>
                 <Table.Cell align="right">
@@ -71,4 +66,4 @@ function PointTable() {
   );
 }
 
-export default PointTable;
+export default UserPointTable;

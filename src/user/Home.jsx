@@ -147,12 +147,11 @@ function Home() {
           const functions = getFunctions();
           const getPointsData = httpsCallable(
             functions,
-            "getParticipantLeaderboardAndSubmissions"
+            "getParticipantSubmissions"
           );
           const result = await getPointsData({ participationNumber });
 
           setPointsData(result.data);
-          console.log(result.data);
 
           let totalPoints = 0;
           const submissions = [];
@@ -277,7 +276,7 @@ function Home() {
                     Today's Quiz
                   </SegmentedControl.Item>
                   <SegmentedControl.Item value="points">
-                    My Points
+                    My Answers
                   </SegmentedControl.Item>
                 </SegmentedControl.Root>
 
@@ -312,127 +311,183 @@ function Home() {
                             <strong>{pointsData.totalPoints}</strong>
                           </Callout.Text>
                         </Callout.Root>
-                        <Text size="5" mt="6">
-                          Your Answers:
-                        </Text>
-                        {pointsData.submissions.map((submission) => (
-                          <Flex
-                            direction="column"
-                            gap="3"
-                            key={submission.quizId}
-                          >
-                            <Text size="4" weight="bold">
-                              {submission.quizName}:
-                            </Text>
-                            {submission.answers.map((ans, idx) => (
-                              <Flex key={idx} direction="column" gap="1">
-                                <Text size="3" weight="bold">
-                                  {ans.question}
-                                </Text>
-                                {ans.correctAnswer ? (
-                                  <>
-                                    <Flex>
-                                      <Text
-                                        size="2"
-                                        style={{
-                                          background: "var(--red-a3)",
-                                          border: "1px dashed var(--red-a7)",
-                                          borderRadius: "3px 0px 0px 3px",
-                                          padding: "7px",
-                                          width: "30%",
-                                        }}
-                                      >
-                                        Your Answer:
+
+                        {pointsData.submissions
+                          .sort((a, b) => b.quizName.localeCompare(a.quizName))
+                          .map((submission) => (
+                            <Flex
+                              direction="column"
+                              gap="3"
+                              key={submission.quizId}
+                            >
+                              <Separator size="4" my="3" />
+                              <Text size="4" weight="bold">
+                                {submission.quizName}:
+                              </Text>
+                              {submission.publishAnswers
+                                ? submission.answers.map((ans, idx) => (
+                                    <Flex key={idx} direction="column" gap="1">
+                                      <Text size="3" weight="bold">
+                                        {ans.question}
                                       </Text>
+                                      {ans.correctAnswer ? (
+                                        <>
+                                          <Flex>
+                                            <Text
+                                              size="2"
+                                              style={{
+                                                background: "var(--red-a3)",
+                                                border:
+                                                  "1px dashed var(--red-a7)",
+                                                borderRadius: "3px 0px 0px 3px",
+                                                padding: "7px",
+                                                width: "30%",
+                                              }}
+                                            >
+                                              Your Answer:
+                                            </Text>
+                                            <Text
+                                              size="2"
+                                              style={{
+                                                background: "var(--red-a3)",
+                                                border:
+                                                  "1px dashed var(--red-a7)",
+                                                borderRadius: "0px 3px 3px 0px",
+                                                padding: "7px",
+                                                width: "70%",
+                                              }}
+                                            >
+                                              {ans.submittedAnswer}
+                                            </Text>
+                                          </Flex>
+                                          <Flex>
+                                            <Text
+                                              size="2"
+                                              style={{
+                                                background: "var(--green-a3)",
+                                                border:
+                                                  "1px dashed var(--green-a7)",
+                                                borderRadius: "3px 0px 0px 3px",
+                                                padding: "7px",
+                                                width: "30%",
+                                              }}
+                                            >
+                                              Correct Answer:
+                                            </Text>
+                                            <Text
+                                              size="2"
+                                              style={{
+                                                background: "var(--green-a3)",
+                                                border:
+                                                  "1px dashed var(--green-a7)",
+                                                borderRadius: "0px 3px 3px 0px",
+                                                padding: "7px",
+                                                width: "70%",
+                                              }}
+                                            >
+                                              {ans.correctAnswer}
+                                            </Text>
+                                          </Flex>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <Flex>
+                                            <Text
+                                              size="2"
+                                              style={{
+                                                background: "var(--green-a3)",
+                                                border:
+                                                  "1px dashed var(--green-a7)",
+                                                borderRadius: "3px 0px 0px 3px",
+                                                padding: "7px",
+                                                width: "30%",
+                                              }}
+                                            >
+                                              Your Answer:
+                                            </Text>
+                                            <Text
+                                              size="2"
+                                              style={{
+                                                background: "var(--green-a3)",
+                                                border:
+                                                  "1px dashed var(--green-a7)",
+                                                borderRadius: "0px 3px 3px 0px",
+                                                padding: "7px",
+                                                width: "70%",
+                                              }}
+                                            >
+                                              {ans.submittedAnswer}
+                                            </Text>
+                                          </Flex>
+                                          <Text
+                                            size="2"
+                                            style={{
+                                              background: "var(--gray-a3)",
+                                              borderColor: "var(--gray-a7)",
+                                              border:
+                                                "1px solid var(--gray-a7)",
+                                              borderBottom:
+                                                "1px solid var(--gray-a7)",
+                                              borderRadius: "3px",
+                                              padding: "7px",
+                                              width: "100%",
+                                            }}
+                                          >
+                                            Your answer is correct!
+                                          </Text>
+                                        </>
+                                      )}
+                                    </Flex>
+                                  ))
+                                : // For quizzes that haven't published answers
+                                  submission.answers.map((ans, idx) => (
+                                    <Flex key={idx} direction="column" gap="1">
+                                      <Text size="3" weight="bold">
+                                        {ans.question}
+                                      </Text>
+                                      <Flex>
+                                        <Text
+                                          size="2"
+                                          style={{
+                                            background: "var(--blue-a3)",
+                                            border: "1px dashed var(--blue-a7)",
+                                            borderRadius: "3px 0px 0px 3px",
+                                            padding: "7px",
+                                            width: "30%",
+                                          }}
+                                        >
+                                          Your Answer:
+                                        </Text>
+                                        <Text
+                                          size="2"
+                                          style={{
+                                            background: "var(--blue-a3)",
+                                            border: "1px dashed var(--blue-a7)",
+                                            borderRadius: "0px 3px 3px 0px",
+                                            padding: "7px",
+                                            width: "70%",
+                                          }}
+                                        >
+                                          {ans.submittedAnswer}
+                                        </Text>
+                                      </Flex>
                                       <Text
                                         size="2"
                                         style={{
-                                          background: "var(--red-a3)",
-                                          border: "1px dashed var(--red-a7)",
-                                          borderRadius: "0px 3px 3px 0px",
+                                          background: "var(--gray-a3)",
+                                          borderColor: "var(--gray-a7)",
+                                          border: "1px solid var(--gray-a7)",
+                                          borderRadius: "3px",
                                           padding: "7px",
-                                          width: "70%",
+                                          width: "100%",
                                         }}
                                       >
-                                        {ans.submittedAnswer}
+                                        Result not yet published
                                       </Text>
                                     </Flex>
-                                    <Flex>
-                                      <Text
-                                        size="2"
-                                        style={{
-                                          background: "var(--green-a3)",
-                                          border: "1px dashed var(--green-a7)",
-                                          borderRadius: "3px 0px 0px 3px",
-                                          padding: "7px",
-                                          width: "30%",
-                                        }}
-                                      >
-                                        Correct Answer:
-                                      </Text>
-                                      <Text
-                                        size="2"
-                                        style={{
-                                          background: "var(--green-a3)",
-                                          border: "1px dashed var(--green-a7)",
-                                          borderRadius: "0px 3px 3px 0px",
-                                          padding: "7px",
-                                          width: "70%",
-                                        }}
-                                      >
-                                        {ans.correctAnswer}
-                                      </Text>
-                                    </Flex>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Flex>
-                                      <Text
-                                        size="2"
-                                        style={{
-                                          background: "var(--green-a3)",
-                                          border: "1px dashed var(--green-a7)",
-                                          borderRadius: "3px 0px 0px 3px",
-                                          padding: "7px",
-                                          width: "30%",
-                                        }}
-                                      >
-                                        Your Answer:
-                                      </Text>
-                                      <Text
-                                        size="2"
-                                        style={{
-                                          background: "var(--green-a3)",
-                                          border: "1px dashed var(--green-a7)",
-                                          borderRadius: "0px 3px 3px 0px",
-                                          padding: "7px",
-                                          width: "70%",
-                                        }}
-                                      >
-                                        {ans.submittedAnswer}
-                                      </Text>
-                                    </Flex>
-                                    <Text
-                                      size="2"
-                                      style={{
-                                        background: "var(--gray-a3)",
-                                        borderColor: "var(--gray-a7)",
-                                        border: "1px solid var(--gray-a7)",
-                                        borderBottom:
-                                          "1px solid var(--gray-a7)",
-                                        borderRadius: "3px",
-                                        padding: "7px",
-                                        width: "100%",
-                                      }}
-                                    >
-                                      Your answer is correct!
-                                    </Text>
-                                  </>
-                                )}
-                              </Flex>
-                            ))}
-                          </Flex>
-                        ))}
+                                  ))}
+                            </Flex>
+                          ))}
                       </>
                     ) : (
                       <Text>No submission data found.</Text>

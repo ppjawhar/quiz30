@@ -61,6 +61,7 @@ exports.lookupParticipant = functions.https.onRequest((req, res) => {
           quizData = {
             quizName: originalQuizData.quizName,
             description: originalQuizData.description,
+            shuffleOptions: originalQuizData.shuffleOptions,
             questions: originalQuizData.questions.map((question) => ({
               question: question.question,
               options: Array.isArray(question.options)
@@ -71,7 +72,12 @@ exports.lookupParticipant = functions.https.onRequest((req, res) => {
             })),
           };
         } else {
-          quizData = { quizName: "", description: "", questions: [] };
+          quizData = {
+            quizName: "",
+            description: "",
+            shuffleOptions: false,
+            questions: [],
+          };
         }
       }
 
@@ -110,7 +116,7 @@ exports.submitQuiz = functions.https.onRequest(async (req, res) => {
       const responses = quizData.responses || [];
       const alreadySubmitted = responses.some(
         (response) =>
-          String(r.participationNumber) === String(participationNumber)
+          response.participationNumber === participant.participationNumber
       );
       if (alreadySubmitted) {
         return res.status(400).json({ error: "Quiz already submitted" });
@@ -362,3 +368,173 @@ exports.getParticipantLeaderboardAndSubmissions = functions.https.onCall(
     }
   }
 );
+
+exports.getParticipantSubmissions = functions.https.onCall(
+  async (data, context) => {
+    try {
+      const db = admin.firestore();
+      const { participationNumber } = data.data;
+      if (!participationNumber) {
+        throw new functions.https.HttpsError(
+          "invalid-argument",
+          "Participation number is required."
+        );
+      }
+
+      // Get ALL quizzes (regardless of publishAnswers)
+      const quizzesSnapshot = await db.collection("quizzes").get();
+      const quizzesData = quizzesSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      let totalPoints = 0;
+      const submissions = [];
+
+      quizzesData.forEach((quiz) => {
+        // Skip if no responses
+        if (!quiz.responses) return;
+        // Find the response from the participant
+        const response = quiz.responses.find(
+          (r) => String(r.participationNumber) === String(participationNumber)
+        );
+        if (!response) return;
+
+        const answerDetails = [];
+        let correctCount = 0;
+
+        // Process each answer differently based on quiz.publishAnswers
+        if (quiz.publishAnswers) {
+          response.answers.forEach((answer) => {
+            // Find the corresponding quiz question by question text.
+            const quizQuestion = quiz.questions.find(
+              (q) => q.question === answer.question
+            );
+            if (!quizQuestion) return; // Skip if the question is not found.
+            const correctOption = quizQuestion.options.find(
+              (option) => option.isCorrect
+            );
+            const isAnswerCorrect =
+              correctOption && answer.selectedAnswer === correctOption.text;
+            if (isAnswerCorrect) {
+              correctCount++;
+              answerDetails.push({
+                question: quizQuestion.question,
+                submittedAnswer: answer.selectedAnswer,
+              });
+            } else {
+              answerDetails.push({
+                question: quizQuestion.question,
+                submittedAnswer: answer.selectedAnswer,
+                correctAnswer: correctOption
+                  ? correctOption.text
+                  : "Not available",
+              });
+            }
+          });
+          totalPoints += correctCount;
+        } else {
+          // For quizzes that have not published answers, only include the submitted answer.
+          response.answers.forEach((answer) => {
+            const quizQuestion = quiz.questions.find(
+              (q) => q.question === answer.question
+            );
+            if (!quizQuestion) return;
+            answerDetails.push({
+              question: quizQuestion.question,
+              submittedAnswer: answer.selectedAnswer,
+              result: "result not yet published",
+            });
+          });
+        }
+
+        submissions.push({
+          quizId: quiz.id,
+          quizName: quiz.quizName,
+          publishAnswers: quiz.publishAnswers,
+          answers: answerDetails,
+          correctCount: quiz.publishAnswers ? correctCount : undefined,
+        });
+      });
+
+      return { quizzesData, totalPoints, submissions };
+    } catch (error) {
+      console.error(
+        "Error fetching participant leaderboard and submissions:",
+        error
+      );
+      throw new functions.https.HttpsError("internal", "Unable to fetch data");
+    }
+  }
+);
+
+// fetching quiz details for user side view
+exports.getQuizDetails = functions.https.onCall(async (data, context) => {
+  try {
+    const quizzesSnapshot = await admin
+      .firestore()
+      .collection("quizzes")
+      .orderBy("quizName", "asc")
+      .get();
+
+    const quizzes = [];
+    quizzesSnapshot.forEach((doc) => {
+      const quizData = doc.data();
+
+      // Calculate the total number of responses for the quiz
+      let totalResponses = quizData.responses ? quizData.responses.length : 0;
+      let totalCorrect = 0;
+
+      // For each response, count the number of correct answers
+      if (quizData.responses) {
+        quizData.responses.forEach((response) => {
+          if (response.answers && Array.isArray(response.answers)) {
+            totalCorrect += response.answers.filter(
+              (answer) => answer.isCorrect
+            ).length;
+          }
+        });
+      }
+
+      quizzes.push({
+        id: doc.id,
+        ...quizData,
+        totalResponses,
+        totalCorrect,
+      });
+    });
+
+    return quizzes;
+  } catch (error) {
+    console.error("Error fetching quiz details:", error);
+    throw new functions.https.HttpsError(
+      "internal",
+      "Error fetching quiz details",
+      error
+    );
+  }
+});
+
+exports.getQuizById = functions.https.onCall(async (data, context) => {
+  try {
+    const db = admin.firestore();
+    const { quizId } = data.data;
+    if (!quizId) {
+      throw new functions.https.HttpsError(
+        "invalid-argument",
+        "Quiz ID is required."
+      );
+    }
+    const quizDoc = await db.collection("quizzes").doc(quizId).get();
+    if (!quizDoc.exists) {
+      throw new functions.https.HttpsError("not-found", "Quiz not found");
+    }
+    return { quiz: { id: quizDoc.id, ...quizDoc.data() } };
+  } catch (error) {
+    console.error("Error retrieving quiz:", error);
+    throw new functions.https.HttpsError(
+      "internal",
+      "Unable to retrieve quiz data"
+    );
+  }
+});

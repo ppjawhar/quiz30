@@ -14,6 +14,8 @@ import Quizzes from "./admin/Quizzes";
 import AddQuiz from "./admin/AddQuiz";
 import QuizInfo from "./admin/QuizInfo";
 import Leaderboard from "./admin/Leaderboard";
+import UserDashboard from "./user/UserDashboard";
+import DailyAttend from "./components/user/DailyAttend";
 
 function App() {
   const [appearance, setAppearance] = useState("light");
@@ -32,8 +34,9 @@ function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/userdashboard" element={<UserDashboard />} />
+            <Route path="/dailyattend/:id" element={<DailyAttend />} />{" "}
             <Route path="/login" element={<Login />} />
-
             {/* Admin Pages with Layout */}
             <Route
               path="/"
